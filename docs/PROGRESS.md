@@ -41,24 +41,25 @@ Statusy zadań:
 - [x] Testy jednostkowe repozytorium i mechanizmu wykrywania zmian (2026-10-03)
 
 ### Etap 4: Onboarding z dropdownami
-- [ ] Implementacja ViewModel i stanu wyboru kaskadowego: Wydział → Kierunek → Rok → Grupa → Wyszukaj
-- [ ] Ekran Onboardingu z ciemnym motywem, „szklanymi” polami i animacjami
-- [ ] Okno wyboru podgrupy po wyszukaniu
-- [ ] Obsługa uprawnień systemowych (POST_NOTIFICATIONS, SCHEDULE_EXACT_ALARM)
+- [x] Implementacja ViewModel i stanu wyboru kaskadowego: Wydział → Kierunek → Rok → Grupa → Wyszukaj (2026-10-03)
+- [x] Ekran Onboardingu z ciemnym motywem, „szklanymi” polami i animacjami (2026-10-03)
+- [x] Okno wyboru podgrupy po wyszukaniu (2026-10-03)
+- [x] Obsługa uprawnień systemowych (POST_NOTIFICATIONS, SCHEDULE_EXACT_ALARM) (2026-10-03)
 
 ### Etap 5: Ekran Plan (główny widok)
-- [ ] Widok „Najbliższe” (lista chronologiczna od teraz, trwające zajęcia, przyklejane nagłówki dni, okienka)
-- [ ] Widok „Dzień po dniu” (pager z paskiem dni)
-- [ ] Karty zajęć (godziny, chip typu, chip sali / kamery Online, prowadzący, łącznik wieloblokowy)
-- [ ] Wyróżnienie zajęć `Online_<nr>` (kolorystyka, ikona)
-- [ ] Obsługa stanów: ładowanie (shimmer), błąd, brak zajęć (pusty stan)
+- [x] Widok „Najbliższe” (lista chronologiczna od teraz, trwające zajęcia, przyklejane nagłówki dni, okienka) (2026-10-03)
+- [x] Widok „Dzień po dniu” (pager z paskiem dni) (2026-10-03)
+- [x] Karty zajęć (godziny, chip typu, chip sali / kamery Online, prowadzący, łącznik wieloblokowy) (2026-10-03)
+- [x] Wyróżnienie zajęć `Online_<nr>` (kolorystyka, ikona) (2026-10-03)
+- [x] Obsługa stanów: ładowanie (shimmer/spinner), błąd (z informacją o offline cache), pusty stan (2026-10-03)
 
 ### Etap 6: Silnik powiadomień
-- [ ] Czysta klasa wyznaczająca stan powiadomienia i harmonogram alarmów (pure domain logic)
-- [ ] Testy jednostkowe logiki harmonogramu (różne pory dnia, dni bez zajęć, odwołane bloki)
-- [ ] Odbiornik `BroadcastReceiver` i harmonogramowanie `AlarmManager.setExactAndAllowWhileIdle`
-- [ ] Aktualizacja powiadomienia w miejscu (`setOnlyAlertOnce(true)`) bez trwałego serwisu
-- [ ] Obsługa zdarzeń `BOOT_COMPLETED` oraz zmiany strefy/zegara
+- [x] Czysta klasa wyznaczająca stan powiadomienia i harmonogram alarmów (`NotificationSchedulerEngine`) (2026-10-03)
+- [x] Testy jednostkowe logiki harmonogramu (różne pory dnia, dni bez zajęć, odwołane bloki) - 7 testów (2026-10-03)
+- [x] Odbiornik `BroadcastReceiver` i harmonogramowanie `AlarmManager.setExactAndAllowWhileIdle` (2026-10-03)
+- [x] Aktualizacja powiadomienia w miejscu (`setOnlyAlertOnce(true)`) bez trwałego serwisu (2026-10-03)
+- [x] Obsługa zdarzeń `BOOT_COMPLETED` oraz zmiany strefy/zegara (2026-10-03)
+- [x] Utworzenie dokumentacji powiadomień `docs/NOTIFICATIONS.md` (2026-10-03)
 
 ### Etap 7: Kalendarz, Szukaj, klikalne szczegóły
 - [ ] Ekran Kalendarza (widok miesiąca ze znacznikami dni z zajęciami, siatka tygodnia)

@@ -27,6 +27,17 @@
             </intent-filter>
         </activity>
 
+        <receiver
+            android:name=".notification.ScheduleAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="pl.legnica.planzajec.ACTION_TRIGGER_NOTIFICATION_UPDATE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>
