@@ -17,11 +17,11 @@ Statusy zadań:
 - [x] Sporządzenie dokumentu `docs/DATA_SOURCE.md` z opisem struktury, adresów i wyjątków (2026-10-03)
 
 ### Etap 1: Szkielet projektu i CI
-- [ ] Inicjalizacja struktury Gradle (root, `:app`, `:parser`) z Version Catalog (`libs.versions.toml`)
-- [ ] Konfiguracja Gradle Wrapper i podstawowych pluginów (Kotlin, Android, Hilt)
-- [ ] Konfiguracja `.gitignore` i licencji MIT
-- [ ] Utworzenie bazowego workflow `.github/workflows/ci.yml`
-- [ ] Weryfikacja buildu bazowego projektu
+- [x] Inicjalizacja struktury Gradle (root, `:app`, `:parser`) z Version Catalog (`libs.versions.toml`) (2026-10-03)
+- [x] Konfiguracja Gradle Wrapper (Gradle 8.11.1, Java 21) i wtyczek (Kotlin 2.0, Compose, Hilt, Room KSP) (2026-10-03)
+- [x] Konfiguracja `.gitignore` i licencji MIT (2026-10-03)
+- [x] Utworzenie bazowego workflow `.github/workflows/ci.yml` (2026-10-03)
+- [x] Weryfikacja buildu bazowego projektu (`:parser:test`, `:app:assembleDebug` - green) (2026-10-03)
 
 ### Etap 2: Parser i testy jednostkowe (`:parser`)
 - [ ] Model danych w module `:parser` (wydziały, kierunki, grupy, lekcje, sale, nauczyciele)
