@@ -24,12 +24,13 @@ Statusy zadań:
 - [x] Weryfikacja buildu bazowego projektu (`:parser:test`, `:app:assembleDebug` - green) (2026-10-03)
 
 ### Etap 2: Parser i testy jednostkowe (`:parser`)
-- [ ] Model danych w module `:parser` (wydziały, kierunki, grupy, lekcje, sale, nauczyciele)
-- [ ] Implementacja parsera listy wydziałów, kierunków i grup
-- [ ] Implementacja parsera planu zajęć (podgrupy, bloki 45 min, parzystość tygodni, legenda skrótów, zajęcia online, wpisy „Różne”)
-- [ ] Implementacja parsera widoków nauczyciela i sal
-- [ ] Zestaw testów jednostkowych na przygotowanych fixtures (różne wydziały i tryby)
-- [ ] Weryfikacja: zielone testy JVM w module `:parser`
+- [x] Model danych w module `:parser` (wydziały, kierunki, grupy, lekcje, sale, nauczyciele, warianty) (2026-10-03)
+- [x] Implementacja parsera listy wydziałów, kierunków i grup (2026-10-03)
+- [x] Implementacja parsera planu zajęć (podgrupy, bloki 45 min, parzystość tygodni, legenda skrótów, zajęcia online, wpisy „Różne”) (2026-10-03)
+- [x] Implementacja parsera widoków nauczyciela i sal (2026-10-03)
+- [x] Zestaw testów jednostkowych na przygotowanych fixtures (różne wydziały i tryby) (2026-10-03)
+- [x] Utworzenie dokumentacji parsera `docs/PARSER.md` (2026-10-03)
+- [x] Weryfikacja: zielone testy JVM w module `:parser` (11/11 testów zaliczonych) (2026-10-03)
 
 ### Etap 3: Warstwa danych (`:app`)
 - [ ] Konfiguracja sieci (OkHttp z dekodowaniem ISO-8859-2, obsługa HTTP / `networkSecurityConfig`)
