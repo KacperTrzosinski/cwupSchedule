@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Plan Zajęć PWSZ Legnica</string>
+    <string name="widget_description">Wyświetla najbliższe zajęcia i plan na pulpicie</string>
 </resources>
