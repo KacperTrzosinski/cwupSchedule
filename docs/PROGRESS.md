@@ -1,0 +1,85 @@
+# Postęp prac nad projektem Plan Zajęć PWSZ Legnica
+
+Statusy zadań:
+- `[ ]` – do zrobienia
+- `[~]` – w toku
+- `[x]` – zrobione i zweryfikowane
+- `[!]` – zablokowane (z uzasadnieniem)
+
+---
+
+## Lista kontrolna etapów
+
+### Przygotowanie i Rekonesans (Etap 0)
+- [x] Utworzenie `docs/PROGRESS.md` oraz `docs/DECISIONS.md` (2026-10-03)
+- [x] Pobranie rzeczywistych stron HTML z planu (wydziały 1, 2, 7, 10, 11, grupy stacjonarne/niestacjonarne, sale, nauczyciele) (2026-10-03)
+- [x] Zapisanie stron jako fixtures w `parser/src/test/resources/fixtures/` z zachowaniem kodowania ISO-8859-2 (2026-10-03)
+- [x] Sporządzenie dokumentu `docs/DATA_SOURCE.md` z opisem struktury, adresów i wyjątków (2026-10-03)
+
+### Etap 1: Szkielet projektu i CI
+- [ ] Inicjalizacja struktury Gradle (root, `:app`, `:parser`) z Version Catalog (`libs.versions.toml`)
+- [ ] Konfiguracja Gradle Wrapper i podstawowych pluginów (Kotlin, Android, Hilt)
+- [ ] Konfiguracja `.gitignore` i licencji MIT
+- [ ] Utworzenie bazowego workflow `.github/workflows/ci.yml`
+- [ ] Weryfikacja buildu bazowego projektu
+
+### Etap 2: Parser i testy jednostkowe (`:parser`)
+- [ ] Model danych w module `:parser` (wydziały, kierunki, grupy, lekcje, sale, nauczyciele)
+- [ ] Implementacja parsera listy wydziałów, kierunków i grup
+- [ ] Implementacja parsera planu zajęć (podgrupy, bloki 45 min, parzystość tygodni, legenda skrótów, zajęcia online, wpisy „Różne”)
+- [ ] Implementacja parsera widoków nauczyciela i sal
+- [ ] Zestaw testów jednostkowych na przygotowanych fixtures (różne wydziały i tryby)
+- [ ] Weryfikacja: zielone testy JVM w module `:parser`
+
+### Etap 3: Warstwa danych (`:app`)
+- [ ] Konfiguracja sieci (OkHttp z dekodowaniem ISO-8859-2, obsługa HTTP / `networkSecurityConfig`)
+- [ ] Baza danych Room (encje, DAO, migracje / fallbackToDestructiveMigration) dla cache planu i metadanych
+- [ ] DataStore Preferences (wybrana grupa, podgrupa, preferencje motywu, filtry)
+- [ ] Repozytorium z obsługą trybu offline i wykrywaniem zmian (poprzedni vs aktualny stan)
+- [ ] Zadanie WorkManager do okresowej synchronizacji planu w tle
+- [ ] Testy jednostkowe repozytorium i mechanizmu wykrywania zmian
+
+### Etap 4: Onboarding z dropdownami
+- [ ] Implementacja ViewModel i stanu wyboru kaskadowego: Wydział → Kierunek → Rok → Grupa → Wyszukaj
+- [ ] Ekran Onboardingu z ciemnym motywem, „szklanymi” polami i animacjami
+- [ ] Okno wyboru podgrupy po wyszukaniu
+- [ ] Obsługa uprawnień systemowych (POST_NOTIFICATIONS, SCHEDULE_EXACT_ALARM)
+
+### Etap 5: Ekran Plan (główny widok)
+- [ ] Widok „Najbliższe” (lista chronologiczna od teraz, trwające zajęcia, przyklejane nagłówki dni, okienka)
+- [ ] Widok „Dzień po dniu” (pager z paskiem dni)
+- [ ] Karty zajęć (godziny, chip typu, chip sali / kamery Online, prowadzący, łącznik wieloblokowy)
+- [ ] Wyróżnienie zajęć `Online_<nr>` (kolorystyka, ikona)
+- [ ] Obsługa stanów: ładowanie (shimmer), błąd, brak zajęć (pusty stan)
+
+### Etap 6: Silnik powiadomień
+- [ ] Czysta klasa wyznaczająca stan powiadomienia i harmonogram alarmów (pure domain logic)
+- [ ] Testy jednostkowe logiki harmonogramu (różne pory dnia, dni bez zajęć, odwołane bloki)
+- [ ] Odbiornik `BroadcastReceiver` i harmonogramowanie `AlarmManager.setExactAndAllowWhileIdle`
+- [ ] Aktualizacja powiadomienia w miejscu (`setOnlyAlertOnce(true)`) bez trwałego serwisu
+- [ ] Obsługa zdarzeń `BOOT_COMPLETED` oraz zmiany strefy/zegara
+
+### Etap 7: Kalendarz, Szukaj, klikalne szczegóły
+- [ ] Ekran Kalendarza (widok miesiąca ze znacznikami dni z zajęciami, siatka tygodnia)
+- [ ] Ekran Szukaj (wyszukiwanie grup, sal, prowadzących, wolnych sal)
+- [ ] Klikalne sale i prowadzący z poziomu karty zajęć (przejście do ich planu)
+- [ ] Oznaczanie zmian na kartach (nowe, zmieniona sala/godzina, odwołane)
+
+### Etap 8: Widżet, animacje, dopracowanie UI
+- [ ] Widżet ekranu głównego (Jetpack Glance) pokazujący najbliższe zajęcia
+- [ ] Ekran Ustawień (zmiana grupy, filtry online/stacjonarne, scalanie bloków, instrukcje baterii)
+- [ ] Dopracowanie animacji, ciemnego motywu AMOLED, tokenów designu
+- [ ] Sprawdzenie dostępności (TalkBack, skalowanie czcionek, strefy dotykowe min 48dp)
+- [ ] Wektorowa ikona aplikacji
+
+### Etap 9: GitHub Actions i pełna dokumentacja
+- [ ] Konfiguracja `.github/workflows/release.yml` (automatyczna budowa release APK z obsługą sekretów lub debug fallback)
+- [ ] Pełna dokumentacja: `README.md`, `docs/ARCHITECTURE.md`, `docs/PARSER.md`, `docs/NOTIFICATIONS.md`, `docs/UI_DESIGN.md`, `docs/RELEASE.md`, `docs/DEVELOPMENT.md`, `docs/TESTING.md`
+- [ ] Pliki `CHANGELOG.md`, `CONTRIBUTING.md`, `LICENSE` (MIT)
+
+### Etap 10: Przegląd końcowy
+- [ ] Pełna kompilacja projektu (`./gradlew assembleRelease` / `assembleDebug`)
+- [ ] Uruchomienie wszystkich testów (`./gradlew test`)
+- [ ] Walidacja lint / ktlint
+- [ ] Sprawdzenie zgodności dokumentacji z kodem
+- [ ] Końcowe podsumowanie wykonanych prac
