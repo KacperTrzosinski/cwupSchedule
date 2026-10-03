@@ -85,10 +85,10 @@ fun CalendarScreen(
                         color = TextPrimary
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = DarkBackground
+        containerColor = Color.Transparent
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -145,10 +145,10 @@ fun CalendarScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(DarkSurface)
-                    .border(1.dp, DarkSurfaceBorder, RoundedCornerShape(16.dp))
-                    .padding(8.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFF0F172A).copy(alpha = 0.60f))
+                    .border(1.dp, pl.legnica.planzajec.ui.theme.GlassTokens.BorderBrush, RoundedCornerShape(20.dp))
+                    .padding(10.dp)
             ) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(7),

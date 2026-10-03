@@ -41,32 +41,32 @@ class MainActivity : ComponentActivity() {
             val isAmoled = userPrefs?.isAmoledTheme ?: false
 
             CwupScheduleTheme(isAmoled = isAmoled) {
-                val prefs = userPrefs
-                if (prefs == null) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(DarkBackground),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = Color(0xFF00D2FF))
-                    }
-                } else if (!prefs.onboardingCompleted) {
-                    OnboardingScreen(
-                        viewModel = hiltViewModel(),
-                        onFinish = {
-                            // Onboarding completed, state will update via DataStore flow
+                pl.legnica.planzajec.ui.theme.LiquidGlassBackground(isAmoled = isAmoled) {
+                    val prefs = userPrefs
+                    if (prefs == null) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF00D2FF))
                         }
-                    )
-                } else {
-                    MainScreen(
-                        preferencesRepository = preferencesRepository,
-                        onChangeGroupClick = {
-                            scope.launch {
-                                preferencesRepository.clearGroupSelection()
+                    } else if (!prefs.onboardingCompleted) {
+                        OnboardingScreen(
+                            viewModel = hiltViewModel(),
+                            onFinish = {
+                                // Onboarding completed, state will update via DataStore flow
                             }
-                        }
-                    )
+                        )
+                    } else {
+                        MainScreen(
+                            preferencesRepository = preferencesRepository,
+                            onChangeGroupClick = {
+                                scope.launch {
+                                    preferencesRepository.clearGroupSelection()
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }

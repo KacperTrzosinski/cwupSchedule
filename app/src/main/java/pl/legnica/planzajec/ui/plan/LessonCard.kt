@@ -84,23 +84,30 @@ fun LessonCard(
     )
 
     val cardBorder = when {
-        isOngoing -> BorderStrokeGradient(2.dp, Brush.horizontalGradient(listOf(Color(0xFF00D2FF), Color(0xFF7928CA))))
+        isOngoing -> BorderStrokeGradient(1.5.dp, Brush.horizontalGradient(listOf(Color(0xFF00D2FF), Color(0xFFEC4899), Color(0xFF8B5CF6))))
         lesson.changeFlag == ChangeFlag.CHANGED_ROOM_OR_TIME -> BorderStrokeGradient(1.dp, Brush.horizontalGradient(listOf(ChangeColorModified, ChangeColorModified)))
         lesson.changeFlag == ChangeFlag.NEW -> BorderStrokeGradient(1.dp, Brush.horizontalGradient(listOf(ChangeColorNew, ChangeColorNew)))
         lesson.changeFlag == ChangeFlag.CANCELLED -> BorderStrokeGradient(1.dp, Brush.horizontalGradient(listOf(ChangeColorCancelled, ChangeColorCancelled)))
-        else -> BorderStrokeGradient(1.dp, Brush.horizontalGradient(listOf(DarkSurfaceBorder, DarkSurfaceBorder)))
+        else -> BorderStrokeGradient(1.dp, pl.legnica.planzajec.ui.theme.GlassTokens.BorderBrush)
     }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (isOngoing) DarkSurfaceElevated else DarkSurface)
-            .border(cardBorder.width, cardBorder.brush, RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color(0xFF0F172A).copy(alpha = if (isOngoing) 0.75f else 0.55f))
+            .border(cardBorder.width, cardBorder.brush, RoundedCornerShape(18.dp))
             .alpha(if (isFinished) 0.6f else 1.0f)
-            .padding(14.dp)
     ) {
-        Column {
+        // Specular top reflection
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(32.dp)
+                .background(pl.legnica.planzajec.ui.theme.GlassTokens.SpecularHighlight)
+        )
+
+        Column(modifier = Modifier.padding(14.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top

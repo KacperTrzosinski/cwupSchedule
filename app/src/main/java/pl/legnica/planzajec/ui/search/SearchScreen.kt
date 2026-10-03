@@ -80,10 +80,10 @@ fun SearchScreen(
                         color = TextPrimary
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = DarkBackground
+        containerColor = Color.Transparent
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -108,15 +108,15 @@ fun SearchScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 6.dp),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF00D2FF),
-                    unfocusedBorderColor = DarkSurfaceBorder,
+                    unfocusedBorderColor = Color(0xFF38BDF8).copy(alpha = 0.25f),
                     focusedTextColor = TextPrimary,
                     unfocusedTextColor = TextPrimary,
-                    focusedContainerColor = DarkSurface,
-                    unfocusedContainerColor = DarkSurface
+                    focusedContainerColor = Color(0xFF0F172A).copy(alpha = 0.70f),
+                    unfocusedContainerColor = Color(0xFF0F172A).copy(alpha = 0.55f)
                 )
             )
 
@@ -268,9 +268,9 @@ private fun GroupResultItem(group: StudyGroupEntity, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(DarkSurface)
-            .border(1.dp, DarkSurfaceBorder, RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFF0F172A).copy(alpha = 0.55f))
+            .border(1.dp, pl.legnica.planzajec.ui.theme.GlassTokens.BorderBrush, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -289,9 +289,9 @@ private fun TeacherResultItem(teacher: TeacherEntity, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(DarkSurface)
-            .border(1.dp, DarkSurfaceBorder, RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFF0F172A).copy(alpha = 0.55f))
+            .border(1.dp, pl.legnica.planzajec.ui.theme.GlassTokens.BorderBrush, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -307,9 +307,9 @@ private fun RoomResultItem(room: RoomEntity, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(DarkSurface)
-            .border(1.dp, DarkSurfaceBorder, RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFF0F172A).copy(alpha = 0.55f))
+            .border(1.dp, pl.legnica.planzajec.ui.theme.GlassTokens.BorderBrush, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically,

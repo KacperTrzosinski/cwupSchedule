@@ -254,7 +254,10 @@ fun OnboardingScreen(
     if (state.showSubgroupDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.finishOnboarding(null) },
-            containerColor = DarkSurfaceElevated,
+            modifier = Modifier
+                .clip(RoundedCornerShape(20.dp))
+                .border(1.dp, pl.legnica.planzajec.ui.theme.GlassTokens.BorderBrush, RoundedCornerShape(20.dp)),
+            containerColor = Color(0xFF0F172A),
             title = {
                 Text(
                     text = "Wybierz swoją podgrupę",
@@ -304,9 +307,13 @@ private fun GlassDropdownField(
     var isExpanded by remember { mutableStateOf(false) }
     var filterText by remember { mutableStateOf("") }
 
-    val borderColor = if (!isEnabled) DarkSurfaceBorder
-    else if (selectedValue != null) Color(0xFF06B6D4)
-    else DarkSurfaceBorder
+    val borderBrush = if (!isEnabled) {
+        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color.White.copy(alpha = 0.08f), Color.White.copy(alpha = 0.04f)))
+    } else if (selectedValue != null) {
+        pl.legnica.planzajec.ui.theme.GlassTokens.BorderBrush
+    } else {
+        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color.White.copy(alpha = 0.20f), Color.White.copy(alpha = 0.06f)))
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -320,9 +327,9 @@ private fun GlassDropdownField(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(if (isEnabled) DarkSurface else DarkSurface.copy(alpha = 0.5f))
-                .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color(0xFF0F172A).copy(alpha = if (isEnabled) 0.62f else 0.35f))
+                .border(1.dp, borderBrush, RoundedCornerShape(16.dp))
                 .clickable(enabled = isEnabled) { isExpanded = !isExpanded }
                 .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
@@ -353,7 +360,10 @@ private fun GlassDropdownField(
         if (isExpanded && isEnabled) {
             AlertDialog(
                 onDismissRequest = { isExpanded = false },
-                containerColor = DarkSurfaceElevated,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .border(1.dp, pl.legnica.planzajec.ui.theme.GlassTokens.BorderBrush, RoundedCornerShape(20.dp)),
+                containerColor = Color(0xFF0F172A),
                 title = { Text(text = label, color = TextPrimary) },
                 text = {
                     Column {

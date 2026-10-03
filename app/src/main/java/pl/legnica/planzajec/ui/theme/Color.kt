@@ -5,11 +5,40 @@ import androidx.compose.ui.graphics.Color
 import pl.legnica.planzajec.parser.model.LessonType
 
 // Base Dark Colors
-val DarkBackground = Color(0xFF0D1117)
+val DarkBackground = Color(0xFF030712)
 val AmoledBackground = Color(0xFF000000)
-val DarkSurface = Color(0xFF161B22)
-val DarkSurfaceElevated = Color(0xFF21262D)
-val DarkSurfaceBorder = Color(0xFF30363D)
+val DarkSurface = Color(0xFF111827).copy(alpha = 0.65f)
+val DarkSurfaceElevated = Color(0xFF1F2937).copy(alpha = 0.75f)
+val DarkSurfaceBorder = Color(0xFF38BDF8).copy(alpha = 0.20f)
+
+// Liquid Glass Design Tokens
+val ObsidianBlack = Color(0xFF030712)
+val GlassSurfaceColor = Color(0xFF0F172A).copy(alpha = 0.58f)
+val GlassSurfaceElevatedColor = Color(0xFF1E293B).copy(alpha = 0.68f)
+
+val LiquidGlowCyan = Color(0xFF00D2FF)
+val LiquidGlowPurple = Color(0xFF8B5CF6)
+val LiquidGlowPink = Color(0xFFEC4899)
+val LiquidGlowIndigo = Color(0xFF4F46E5)
+val LiquidGlowEmerald = Color(0xFF10B981)
+
+object GlassTokens {
+    val BorderBrush = Brush.linearGradient(
+        listOf(
+            Color.White.copy(alpha = 0.35f),
+            Color(0xFF00D2FF).copy(alpha = 0.30f),
+            Color(0xFF8B5CF6).copy(alpha = 0.15f),
+            Color.White.copy(alpha = 0.08f)
+        )
+    )
+
+    val SpecularHighlight = Brush.verticalGradient(
+        listOf(
+            Color.White.copy(alpha = 0.14f),
+            Color.Transparent
+        )
+    )
+}
 
 // Text Colors (High Contrast >= 4.5:1)
 val TextPrimary = Color(0xFFF0F6FC)

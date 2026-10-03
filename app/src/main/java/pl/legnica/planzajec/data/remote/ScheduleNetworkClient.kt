@@ -19,7 +19,7 @@ class ScheduleNetworkClient @Inject constructor(
     private val iso88592 = Charset.forName("ISO-8859-2")
     private val baseUrl = "http://www.plan.pwsz.legnica.edu.pl"
 
-    suspend fun fetchDepartmentsHtml(): String = fetchWithRetry("$baseUrl/index.html")
+    suspend fun fetchDepartmentsHtml(): String = fetchWithRetry("$baseUrl/")
 
     suspend fun fetchCoursesHtml(departmentId: Int): String =
         fetchWithRetry("$baseUrl/schedule_view.php?site=show_kierunek.php&id=$departmentId")

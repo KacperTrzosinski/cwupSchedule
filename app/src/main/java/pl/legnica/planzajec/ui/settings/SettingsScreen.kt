@@ -82,10 +82,10 @@ fun SettingsScreen(
                         color = TextPrimary
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = DarkBackground
+        containerColor = Color.Transparent
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -297,10 +297,16 @@ private fun SettingsCard(content: @Composable () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(DarkSurface)
-            .border(1.dp, DarkSurfaceBorder, RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0xFF0F172A).copy(alpha = 0.58f))
+            .border(1.dp, pl.legnica.planzajec.ui.theme.GlassTokens.BorderBrush, RoundedCornerShape(20.dp))
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(30.dp)
+                .background(pl.legnica.planzajec.ui.theme.GlassTokens.SpecularHighlight)
+        )
         Column { content() }
     }
 }

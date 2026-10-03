@@ -3,6 +3,7 @@ package pl.legnica.planzajec.ui.navigation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -71,18 +72,31 @@ fun MainScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = DarkBackground,
+        containerColor = Color.Transparent,
         bottomBar = {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(width = 1.dp, color = DarkSurfaceBorder)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .border(
+                        width = 1.dp,
+                        brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.32f),
+                                Color(0xFF00D2FF).copy(alpha = 0.28f),
+                                Color(0xFF8B5CF6).copy(alpha = 0.15f),
+                                Color.White.copy(alpha = 0.05f)
+                            )
+                        ),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                    )
+                    .background(Color(0xFF090D16).copy(alpha = 0.78f))
             ) {
                 NavigationBar(
-                    containerColor = DarkSurface,
+                    containerColor = Color.Transparent,
                     contentColor = TextPrimary,
                     tonalElevation = 0.dp,
-                    modifier = Modifier.height(64.dp)
+                    modifier = Modifier.height(68.dp)
                 ) {
                     NavigationDestination.entries.forEach { destination ->
                         val isSelected = currentDestination == destination
