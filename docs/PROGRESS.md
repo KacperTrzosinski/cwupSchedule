@@ -33,12 +33,12 @@ Statusy zadań:
 - [x] Weryfikacja: zielone testy JVM w module `:parser` (11/11 testów zaliczonych) (2026-10-03)
 
 ### Etap 3: Warstwa danych (`:app`)
-- [ ] Konfiguracja sieci (OkHttp z dekodowaniem ISO-8859-2, obsługa HTTP / `networkSecurityConfig`)
-- [ ] Baza danych Room (encje, DAO, migracje / fallbackToDestructiveMigration) dla cache planu i metadanych
-- [ ] DataStore Preferences (wybrana grupa, podgrupa, preferencje motywu, filtry)
-- [ ] Repozytorium z obsługą trybu offline i wykrywaniem zmian (poprzedni vs aktualny stan)
-- [ ] Zadanie WorkManager do okresowej synchronizacji planu w tle
-- [ ] Testy jednostkowe repozytorium i mechanizmu wykrywania zmian
+- [x] Konfiguracja sieci (OkHttp z dekodowaniem ISO-8859-2, obsługa HTTP / `networkSecurityConfig`, retry z backoffem) (2026-10-03)
+- [x] Baza danych Room (encje, DAO, migracje) dla cache planu i metadanych (2026-10-03)
+- [x] DataStore Preferences (wybrana grupa, podgrupa, preferencje motywu, filtry, tryb widoku) (2026-10-03)
+- [x] Repozytorium z obsługą trybu offline i wykrywaniem zmian (poprzedni vs aktualny stan) (2026-10-03)
+- [x] Zadanie WorkManager do okresowej synchronizacji planu w tle (2026-10-03)
+- [x] Testy jednostkowe repozytorium i mechanizmu wykrywania zmian (2026-10-03)
 
 ### Etap 4: Onboarding z dropdownami
 - [ ] Implementacja ViewModel i stanu wyboru kaskadowego: Wydział → Kierunek → Rok → Grupa → Wyszukaj
