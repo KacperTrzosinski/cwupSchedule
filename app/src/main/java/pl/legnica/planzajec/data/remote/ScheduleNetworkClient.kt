@@ -25,12 +25,8 @@ class ScheduleNetworkClient @Inject constructor(
         fetchWithRetry("$baseUrl/schedule_view.php?site=show_kierunek.php&id=$departmentId")
 
     suspend fun fetchGroupScheduleHtml(groupCode: String, weekDate: String? = null): String {
-        val url = "$baseUrl/checkSpecjalnosc.php?specjalnosc=$groupCode"
-        return if (weekDate.isNullOrBlank()) {
-            fetchWithRetry(url)
-        } else {
-            postWithRetry(url, mapOf("dzien" to weekDate))
-        }
+        val url = "$baseUrl/checkSpecjalnoscStac.php?specjalnosc=$groupCode"
+        return fetchWithRetry(url)
     }
 
     suspend fun fetchTeachersHtml(): String =

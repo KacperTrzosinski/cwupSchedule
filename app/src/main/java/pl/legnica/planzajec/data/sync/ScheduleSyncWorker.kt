@@ -31,6 +31,7 @@ class ScheduleSyncWorker @AssistedInject constructor(
         val syncResult = repository.refreshSchedule(groupCode)
         return if (syncResult.isSuccess) {
             pl.legnica.planzajec.widget.ScheduleGlanceWidget.updateWidget(applicationContext)
+            pl.legnica.planzajec.notification.ScheduleAlarmReceiver.triggerImmediateUpdate(applicationContext)
             Result.success()
         } else {
             if (runAttemptCount < 3) Result.retry() else Result.failure()

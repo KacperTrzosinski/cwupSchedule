@@ -63,8 +63,16 @@ object NotificationPublisher {
             LessonType.OTHER -> 0xFF00D2FF.toInt()
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val hasPermission = ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            if (!hasPermission) return
+        }
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_notification)
             .setContentTitle(state.title)
             .setContentText(state.content)
             .setStyle(NotificationCompat.BigTextStyle().bigText(state.expandedText.ifBlank { state.content }))
@@ -77,7 +85,11 @@ object NotificationPublisher {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .build()
 
-        notificationManager.notify(NOTIFICATION_ID, notification)
+        try {
+            notificationManager.notify(NOTIFICATION_ID, notification)
+        } catch (_: SecurityException) {
+            // Permission revoked concurrently
+        }
     }
 
     fun dismiss(context: Context) {

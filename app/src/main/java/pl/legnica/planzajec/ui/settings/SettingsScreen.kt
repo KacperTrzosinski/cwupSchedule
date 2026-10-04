@@ -51,7 +51,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.FormatSize
+import androidx.compose.material.icons.filled.Palette
+import pl.legnica.planzajec.data.preferences.AppTheme
 import pl.legnica.planzajec.data.preferences.FilterMode
+import pl.legnica.planzajec.data.preferences.UiScale
 import pl.legnica.planzajec.data.preferences.UserPreferencesRepository
 import pl.legnica.planzajec.ui.theme.DarkBackground
 import pl.legnica.planzajec.ui.theme.DarkSurface
@@ -161,16 +166,113 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Section: Wygląd i filtry
-            SettingsSectionHeader("Wygląd i filtry")
+            // Section: Wygląd i personalizacja
+            SettingsSectionHeader("Personalizacja i wygląd")
             SettingsCard {
-                SettingsSwitchRow(
-                    icon = Icons.Default.Brightness4,
-                    title = "Głęboka czerń (AMOLED)",
-                    subtitle = "Maksymalna oszczędność baterii na ekranach OLED",
-                    checked = prefs?.isAmoledTheme ?: false,
-                    onCheckedChange = { scope.launch { preferencesRepository.setAmoledTheme(it) } }
-                )
+                // Motyw kolorystyczny
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Palette, contentDescription = null, tint = Color(0xFF00D2FF), modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(text = "Motyw kolorystyczny", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                            Text(text = "Dopasuj akcenty i świecące gradienty Liquid Glass", fontSize = 12.sp, color = TextSecondary)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ThemeOptionItem(
+                            title = "Liquid Obsidian",
+                            description = "Klasyczny neonowy cyjan i fiolet na czerni",
+                            paletteColors = listOf(Color(0xFF00D2FF), Color(0xFF8B5CF6), Color(0xFFEC4899)),
+                            isSelected = (prefs?.appTheme ?: AppTheme.LIQUID_OBSIDIAN) == AppTheme.LIQUID_OBSIDIAN
+                        ) {
+                            scope.launch { preferencesRepository.setAppTheme(AppTheme.LIQUID_OBSIDIAN) }
+                        }
+
+                        ThemeOptionItem(
+                            title = "Aurora Purple",
+                            description = "Głęboki fiolet, magenta i zorza polarna",
+                            paletteColors = listOf(Color(0xFFA855F7), Color(0xFFEC4899), Color(0xFF38BDF8)),
+                            isSelected = prefs?.appTheme == AppTheme.AURORA_PURPLE
+                        ) {
+                            scope.launch { preferencesRepository.setAppTheme(AppTheme.AURORA_PURPLE) }
+                        }
+
+                        ThemeOptionItem(
+                            title = "Emerald Matrix",
+                            description = "Cybernetyczny szmaragd, mięta i limonka",
+                            paletteColors = listOf(Color(0xFF10B981), Color(0xFF34D399), Color(0xFF84CC16)),
+                            isSelected = prefs?.appTheme == AppTheme.EMERALD_MATRIX
+                        ) {
+                            scope.launch { preferencesRepository.setAppTheme(AppTheme.EMERALD_MATRIX) }
+                        }
+
+                        ThemeOptionItem(
+                            title = "Deep Ocean",
+                            description = "Błękit oceanu, kobalt i szafir",
+                            paletteColors = listOf(Color(0xFF0284C7), Color(0xFF2563EB), Color(0xFF06B6D4)),
+                            isSelected = prefs?.appTheme == AppTheme.DEEP_OCEAN
+                        ) {
+                            scope.launch { preferencesRepository.setAppTheme(AppTheme.DEEP_OCEAN) }
+                        }
+
+                        ThemeOptionItem(
+                            title = "Pure AMOLED",
+                            description = "100% głęboka czerń, wygaszone tło dla baterii OLED",
+                            paletteColors = listOf(Color(0xFF000000), Color(0xFF333333), Color(0xFF666666)),
+                            isSelected = prefs?.appTheme == AppTheme.PURE_AMOLED || prefs?.isAmoledTheme == true
+                        ) {
+                            scope.launch { preferencesRepository.setAppTheme(AppTheme.PURE_AMOLED) }
+                        }
+                    }
+                }
+
+                SettingsDivider()
+
+                // Skalowanie interfejsu
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.FormatSize, contentDescription = null, tint = Color(0xFF00D2FF), modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(text = "Wielkość interfejsu (skalowanie)", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                            Text(text = "Dostosuj wielkość czcionek i elementów UI", fontSize = 12.sp, color = TextSecondary)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        UiScale.entries.forEach { scale ->
+                            val isSelected = (prefs?.uiScale ?: UiScale.NORMAL) == scale
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(if (isSelected) Color(0xFF00D2FF) else DarkSurfaceElevated)
+                                    .border(1.dp, if (isSelected) Color(0xFF00D2FF) else DarkSurfaceBorder, RoundedCornerShape(10.dp))
+                                    .clickable {
+                                        scope.launch { preferencesRepository.setUiScale(scale) }
+                                    }
+                                    .padding(vertical = 10.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = scale.label,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSelected) Color.Black else TextPrimary
+                                )
+                            }
+                        }
+                    }
+                }
 
                 SettingsDivider()
 
@@ -369,5 +471,79 @@ private fun FilterButton(label: String, isSelected: Boolean, onClick: () -> Unit
             fontWeight = FontWeight.Medium,
             color = if (isSelected) Color.Black else TextSecondary
         )
+    }
+}
+
+@Composable
+private fun ThemeOptionItem(
+    title: String,
+    description: String,
+    paletteColors: List<Color>,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (isSelected) Color(0xFF00D2FF).copy(alpha = 0.12f) else DarkSurfaceElevated.copy(alpha = 0.5f))
+            .border(
+                1.dp,
+                if (isSelected) Color(0xFF00D2FF) else DarkSurfaceBorder.copy(alpha = 0.5f),
+                RoundedCornerShape(12.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 10.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    paletteColors.forEach { color ->
+                        Box(
+                            modifier = Modifier
+                                .size(14.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(color)
+                                .border(1.dp, Color.White.copy(alpha = 0.3f), androidx.compose.foundation.shape.CircleShape)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column {
+                    Text(
+                        text = title,
+                        fontSize = 14.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isSelected) Color(0xFF00D2FF) else TextPrimary
+                    )
+                    Text(
+                        text = description,
+                        fontSize = 11.sp,
+                        color = TextSecondary
+                    )
+                }
+            }
+
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color(0xFF00D2FF),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
     }
 }

@@ -11,11 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -39,15 +37,14 @@ import pl.legnica.planzajec.data.preferences.UserPreferencesRepository
 import pl.legnica.planzajec.ui.calendar.CalendarScreen
 import pl.legnica.planzajec.ui.plan.PlanScreen
 import pl.legnica.planzajec.ui.plan.PlanViewModel
-import pl.legnica.planzajec.ui.search.SearchScreen
-import pl.legnica.planzajec.ui.search.SearchTab
-import pl.legnica.planzajec.ui.search.SearchViewModel
 import pl.legnica.planzajec.ui.settings.SettingsScreen
 import pl.legnica.planzajec.ui.theme.DarkBackground
 import pl.legnica.planzajec.ui.theme.DarkSurface
 import pl.legnica.planzajec.ui.theme.DarkSurfaceBorder
 import pl.legnica.planzajec.ui.theme.TextMuted
 import pl.legnica.planzajec.ui.theme.TextPrimary
+
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 enum class NavigationDestination(
     val title: String,
@@ -56,7 +53,6 @@ enum class NavigationDestination(
 ) {
     PLAN("Plan", Icons.Filled.Schedule, Icons.Outlined.Schedule),
     CALENDAR("Kalendarz", Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
-    SEARCH("Szukaj", Icons.Filled.Search, Icons.Outlined.Search),
     SETTINGS("Ustawienia", Icons.Filled.Settings, Icons.Outlined.Settings)
 }
 
@@ -65,8 +61,7 @@ fun MainScreen(
     preferencesRepository: UserPreferencesRepository,
     onChangeGroupClick: () -> Unit,
     modifier: Modifier = Modifier,
-    planViewModel: PlanViewModel = hiltViewModel(),
-    searchViewModel: SearchViewModel = hiltViewModel()
+    planViewModel: PlanViewModel = hiltViewModel()
 ) {
     var currentDestination by rememberSaveable { mutableStateOf(NavigationDestination.PLAN) }
 
@@ -90,30 +85,35 @@ fun MainScreen(
                         ),
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                     )
-                    .background(Color(0xFF090D16).copy(alpha = 0.78f))
+                    .background(Color(0xFF090D16).copy(alpha = 0.85f))
+                    .navigationBarsPadding()
             ) {
                 NavigationBar(
                     containerColor = Color.Transparent,
                     contentColor = TextPrimary,
                     tonalElevation = 0.dp,
-                    modifier = Modifier.height(68.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp)
                 ) {
                     NavigationDestination.entries.forEach { destination ->
                         val isSelected = currentDestination == destination
                         NavigationBarItem(
                             selected = isSelected,
                             onClick = { currentDestination = destination },
+                            alwaysShowLabel = true,
                             icon = {
                                 Icon(
                                     imageVector = if (isSelected) destination.selectedIcon else destination.unselectedIcon,
-                                    contentDescription = destination.title
+                                    contentDescription = destination.title,
+                                    modifier = Modifier.padding(bottom = 2.dp)
                                 )
                             },
                             label = {
                                 Text(
                                     text = destination.title,
-                                    fontSize = 11.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    fontSize = 12.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
@@ -121,7 +121,7 @@ fun MainScreen(
                                 selectedTextColor = Color(0xFF00D2FF),
                                 unselectedIconColor = TextMuted,
                                 unselectedTextColor = TextMuted,
-                                indicatorColor = Color(0xFF00D2FF).copy(alpha = 0.12f)
+                                indicatorColor = Color(0xFF00D2FF).copy(alpha = 0.14f)
                             )
                         )
                     }
@@ -137,41 +137,12 @@ fun MainScreen(
             when (currentDestination) {
                 NavigationDestination.PLAN -> {
                     PlanScreen(
-                        viewModel = planViewModel,
-                        onTeacherClick = { teacherName ->
-                            searchViewModel.setQuery(teacherName)
-                            searchViewModel.setTab(SearchTab.TEACHERS)
-                            currentDestination = NavigationDestination.SEARCH
-                        },
-                        onRoomClick = { roomName ->
-                            searchViewModel.setQuery(roomName)
-                            searchViewModel.setTab(SearchTab.ROOMS)
-                            currentDestination = NavigationDestination.SEARCH
-                        }
+                        viewModel = planViewModel
                     )
                 }
                 NavigationDestination.CALENDAR -> {
                     CalendarScreen(
-                        viewModel = planViewModel,
-                        onTeacherClick = { teacherName ->
-                            searchViewModel.setQuery(teacherName)
-                            searchViewModel.setTab(SearchTab.TEACHERS)
-                            currentDestination = NavigationDestination.SEARCH
-                        },
-                        onRoomClick = { roomName ->
-                            searchViewModel.setQuery(roomName)
-                            searchViewModel.setTab(SearchTab.ROOMS)
-                            currentDestination = NavigationDestination.SEARCH
-                        }
-                    )
-                }
-                NavigationDestination.SEARCH -> {
-                    SearchScreen(
-                        viewModel = searchViewModel,
-                        onGroupSelected = {
-                            // Optionally switch back to Plan or show preview
-                            currentDestination = NavigationDestination.PLAN
-                        }
+                        viewModel = planViewModel
                     )
                 }
                 NavigationDestination.SETTINGS -> {

@@ -1,9 +1,16 @@
 package pl.legnica.planzajec.ui.plan
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,21 +26,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,8 +46,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,15 +57,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pl.legnica.planzajec.data.local.entity.LessonEntity
 import pl.legnica.planzajec.data.preferences.ViewMode
-import pl.legnica.planzajec.ui.theme.DarkBackground
 import pl.legnica.planzajec.ui.theme.DarkSurface
 import pl.legnica.planzajec.ui.theme.DarkSurfaceBorder
-import pl.legnica.planzajec.ui.theme.DarkSurfaceElevated
+import pl.legnica.planzajec.ui.theme.GlassTokens
 import pl.legnica.planzajec.ui.theme.TextMuted
 import pl.legnica.planzajec.ui.theme.TextPrimary
 import pl.legnica.planzajec.ui.theme.TextSecondary
@@ -78,7 +85,6 @@ fun PlanScreen(
     onRoomClick: (String) -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
-    var showWeekMenu by remember { mutableStateOf(false) }
     var showSubgroupDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -86,87 +92,49 @@ fun PlanScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             Text(
                                 text = state.groupCode.ifBlank { "Plan zajęć" },
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextPrimary
+                                color = TextPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false)
                             )
-                            if (state.subgroup != null) {
-                                Spacer(modifier = Modifier.width(6.dp))
+                            if (!state.subgroup.isNullOrBlank()) {
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Box(
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(Color(0xFF06B6D4).copy(alpha = 0.2f))
-                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color(0xFF00D2FF).copy(alpha = 0.15f))
+                                        .border(1.dp, Color(0xFF00D2FF).copy(alpha = 0.40f), RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 8.dp, vertical = 2.dp)
                                 ) {
                                     Text(
                                         text = state.subgroup.orEmpty(),
                                         fontSize = 11.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFF06B6D4)
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF00D2FF),
+                                        maxLines = 1
                                     )
                                 }
                             }
                         }
                         if (state.lastUpdated.isNotBlank()) {
                             Text(
-                                text = "Aktualizacja: ${state.lastUpdated}",
+                                text = "Semestr · Aktualizacja: ${state.lastUpdated}",
                                 fontSize = 11.sp,
-                                color = TextSecondary
+                                color = TextSecondary,
+                                maxLines = 1
                             )
                         }
                     }
                 },
                 actions = {
-                    // Week selector button
-                    if (state.availableWeeks.isNotEmpty()) {
-                        Box {
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { showWeekMenu = true }
-                                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.DateRange,
-                                    contentDescription = "Tydzień",
-                                    tint = TextSecondary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = state.availableWeeks.find { it.isSelected }?.label?.take(15) ?: "Tydzień",
-                                    fontSize = 12.sp,
-                                    color = TextPrimary
-                                )
-                                Icon(
-                                    imageVector = Icons.Default.ArrowDropDown,
-                                    contentDescription = null,
-                                    tint = TextSecondary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-
-                            DropdownMenu(
-                                expanded = showWeekMenu,
-                                onDismissRequest = { showWeekMenu = false }
-                            ) {
-                                state.availableWeeks.forEach { week ->
-                                    DropdownMenuItem(
-                                        text = { Text(week.label, fontSize = 13.sp) },
-                                        onClick = {
-                                            viewModel.selectWeek(week.value)
-                                            showWeekMenu = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-
                     // View Mode Toggle (Upcoming vs Day by day)
                     IconButton(onClick = {
                         val newMode = if (state.viewMode == ViewMode.UPCOMING) ViewMode.DAY_BY_DAY else ViewMode.UPCOMING
@@ -240,35 +208,50 @@ fun PlanScreen(
                     EmptyStateView()
                 } else {
                     when (state.viewMode) {
-                        ViewMode.UPCOMING -> UpcomingLessonsView(
-                            lessons = state.lessons,
-                            onTeacherClick = onTeacherClick,
-                            onRoomClick = onRoomClick
-                        )
-                        ViewMode.DAY_BY_DAY -> DayByDayView(
-                            lessons = state.lessons,
-                            onTeacherClick = onTeacherClick,
-                            onRoomClick = onRoomClick
-                        )
+                        ViewMode.UPCOMING -> {
+                            UpcomingLessonsView(
+                                lessons = state.lessons,
+                                onTeacherClick = onTeacherClick,
+                                onRoomClick = onRoomClick
+                            )
+                        }
+                        ViewMode.DAY_BY_DAY -> {
+                            DayByDayView(
+                                lessons = state.lessons,
+                                onTeacherClick = onTeacherClick,
+                                onRoomClick = onRoomClick
+                            )
+                        }
                     }
                 }
             }
         }
     }
 
-    // Subgroup Filter Dialog
+    // Subgroup Selection Dialog
     if (showSubgroupDialog) {
         AlertDialog(
             onDismissRequest = { showSubgroupDialog = false },
-            containerColor = DarkSurfaceElevated,
-            title = { Text("Wybierz podgrupę", color = TextPrimary) },
+            modifier = Modifier
+                .clip(RoundedCornerShape(20.dp))
+                .border(1.dp, GlassTokens.BorderBrush, RoundedCornerShape(20.dp)),
+            containerColor = Color(0xFF0F172A),
+            title = {
+                Text(
+                    text = "Wybierz podgrupę",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+            },
             text = {
                 Column {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (state.subgroup == null) Color(0xFF06B6D4).copy(alpha = 0.2f) else DarkSurface)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (state.subgroup == null) Color(0xFF00D2FF).copy(alpha = 0.2f) else DarkSurface)
+                            .border(1.dp, if (state.subgroup == null) Color(0xFF00D2FF) else DarkSurfaceBorder, RoundedCornerShape(10.dp))
                             .clickable {
                                 viewModel.selectSubgroup(null)
                                 showSubgroupDialog = false
@@ -285,9 +268,10 @@ fun PlanScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 3.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(if (state.subgroup == sg) Color(0xFF06B6D4).copy(alpha = 0.2f) else DarkSurface)
-                                .clickable {
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (state.subgroup == sg) Color(0xFF00D2FF).copy(alpha = 0.2f) else DarkSurface)
+                                .border(1.dp, if (state.subgroup == sg) Color(0xFF00D2FF) else DarkSurfaceBorder, RoundedCornerShape(10.dp))
+                            .clickable {
                                     viewModel.selectSubgroup(sg)
                                     showSubgroupDialog = false
                                 }
@@ -360,11 +344,22 @@ private fun DayByDayView(
     val defaultDate = allDates.find { !it.isBefore(today) } ?: allDates.firstOrNull() ?: today
     var selectedDate by remember(allDates) { mutableStateOf(defaultDate) }
 
-    val dayLessons = lessons.filter { it.date == selectedDate }.sortedBy { it.startTime }
+    val listState = rememberLazyListState()
+
+    // Auto-scroll the date selector when selectedDate changes
+    LaunchedEffect(selectedDate, allDates) {
+        val idx = allDates.indexOf(selectedDate)
+        if (idx >= 0) {
+            listState.animateScrollToItem(idx)
+        }
+    }
+
+    var totalDragX by remember { mutableFloatStateOf(0f) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Date Selector Row
         LazyRow(
+            state = listState,
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -376,8 +371,8 @@ private fun DayByDayView(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(if (isSelected) Color(0xFF00D2FF) else DarkSurface)
-                        .border(1.dp, if (isSelected) Color(0xFF00D2FF) else DarkSurfaceBorder, RoundedCornerShape(12.dp))
+                        .background(if (isSelected) Color(0xFF00D2FF) else Color(0xFF0F172A).copy(alpha = 0.55f))
+                        .border(1.dp, if (isSelected) SolidColor(Color(0xFF00D2FF)) else GlassTokens.BorderBrush, RoundedCornerShape(12.dp))
                         .clickable { selectedDate = date }
                         .padding(horizontal = 14.dp, vertical = 10.dp),
                     contentAlignment = Alignment.Center
@@ -404,37 +399,82 @@ private fun DayByDayView(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.End
+                .padding(horizontal = 16.dp, vertical = 2.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(
+                text = "Przeciągnij w lewo/prawo, aby zmienić dzień",
+                fontSize = 11.sp,
+                color = TextMuted
+            )
             if (allDates.contains(today) && selectedDate != today) {
                 TextButton(onClick = { selectedDate = today }) {
-                    Text("Idź do Dziś", fontSize = 12.sp, color = Color(0xFF00D2FF))
+                    Text("Idź do Dziś", fontSize = 12.sp, color = Color(0xFF00D2FF), fontWeight = FontWeight.Bold)
                 }
             }
         }
 
-        // Lessons for selected date
-        if (dayLessons.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Brak zajęć w wybranym dniu", color = TextSecondary)
-            }
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(dayLessons, key = { "${it.id}_${it.startTime}" }) { lesson ->
-                    LessonCard(
-                        lesson = lesson,
-                        onTeacherClick = onTeacherClick,
-                        onRoomClick = onRoomClick
+        // Lessons for selected date with swipe gesture detection
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(selectedDate, allDates) {
+                    detectHorizontalDragGestures(
+                        onDragStart = { totalDragX = 0f },
+                        onDragEnd = {
+                            val currentIndex = allDates.indexOf(selectedDate)
+                            if (totalDragX < -50f && currentIndex < allDates.size - 1) {
+                                // Swiped Left -> Next day
+                                selectedDate = allDates[currentIndex + 1]
+                            } else if (totalDragX > 50f && currentIndex > 0) {
+                                // Swiped Right -> Previous day
+                                selectedDate = allDates[currentIndex - 1]
+                            }
+                            totalDragX = 0f
+                        },
+                        onHorizontalDrag = { _, dragAmount ->
+                            totalDragX += dragAmount
+                        }
                     )
+                }
+        ) {
+            AnimatedContent(
+                targetState = selectedDate,
+                transitionSpec = {
+                    if (targetState > initialState) {
+                        slideInHorizontally { width -> width / 3 } + fadeIn() togetherWith
+                            slideOutHorizontally { width -> -width / 3 } + fadeOut()
+                    } else {
+                        slideInHorizontally { width -> -width / 3 } + fadeIn() togetherWith
+                            slideOutHorizontally { width -> width / 3 } + fadeOut()
+                    }
+                },
+                label = "dayTransition"
+            ) { date ->
+                val dayLessons = lessons.filter { it.date == date }.sortedBy { it.startTime }
+                if (dayLessons.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Brak zajęć w wybranym dniu", color = TextSecondary)
+                    }
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(dayLessons, key = { "${it.id}_${it.startTime}" }) { lesson ->
+                            LessonCard(
+                                lesson = lesson,
+                                onTeacherClick = onTeacherClick,
+                                onRoomClick = onRoomClick
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -449,40 +489,47 @@ private fun DayHeader(date: LocalDate, count: Int, isToday: Boolean) {
     val label = when (date) {
         today -> "Dziś"
         tomorrow -> "Jutro"
-        else -> {
-            val formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale("pl"))
-            date.format(formatter).replaceFirstChar { it.uppercase() }
-        }
+        else -> date.format(DateTimeFormatter.ofPattern("EEEE", Locale("pl"))).replaceFirstChar { it.uppercase() }
     }
+
+    val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("pl"))
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(if (isToday) Color(0xFF00D2FF) else TextMuted)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = label,
-                fontSize = 15.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (isToday) Color(0xFF00D2FF) else TextPrimary
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = date.format(dateFormatter),
+                fontSize = 13.sp,
+                color = TextSecondary
+            )
         }
 
-        Text(
-            text = "$count zajęć",
-            fontSize = 12.sp,
-            color = TextSecondary
-        )
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFF0F172A).copy(alpha = 0.60f))
+                .border(1.dp, GlassTokens.BorderBrush, RoundedCornerShape(10.dp))
+                .padding(horizontal = 8.dp, vertical = 3.dp)
+        ) {
+            Text(
+                text = "$count zajęć",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextSecondary
+            )
+        }
     }
 }
 
@@ -498,25 +545,34 @@ private fun BreakIndicator(minutes: Long) {
         "Okienko: ${remMinutes}m"
     }
 
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = Icons.Default.Schedule,
-            contentDescription = null,
-            tint = TextMuted,
-            modifier = Modifier.size(13.dp)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = text,
-            fontSize = 11.sp,
-            color = TextMuted
-        )
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color(0xFF0F172A).copy(alpha = 0.50f))
+                .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(16.dp))
+                .padding(horizontal = 14.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Schedule,
+                contentDescription = null,
+                tint = Color(0xFF00D2FF),
+                modifier = Modifier.size(13.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = text,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextSecondary
+            )
+        }
     }
 }
 
@@ -543,7 +599,7 @@ private fun EmptyStateView() {
             color = TextPrimary
         )
         Text(
-            text = "Sprawdź inny tydzień lub odśwież plan",
+            text = "Odśwież plan lub zmień filtry",
             fontSize = 14.sp,
             color = TextSecondary,
             modifier = Modifier.padding(top = 6.dp)

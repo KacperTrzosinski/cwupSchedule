@@ -24,6 +24,14 @@ import pl.legnica.planzajec.ui.theme.CwupScheduleTheme
 import pl.legnica.planzajec.ui.theme.DarkBackground
 import javax.inject.Inject
 
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import pl.legnica.planzajec.data.preferences.AppTheme
+import pl.legnica.planzajec.data.preferences.UiScale
+import pl.legnica.planzajec.notification.ScheduleAlarmReceiver
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -38,34 +46,50 @@ class MainActivity : ComponentActivity() {
             val userPrefs by preferencesRepository.userPreferencesFlow.collectAsState(initial = null)
             val scope = rememberCoroutineScope()
 
+            val appTheme = userPrefs?.appTheme ?: AppTheme.LIQUID_OBSIDIAN
             val isAmoled = userPrefs?.isAmoledTheme ?: false
+            val uiScale = userPrefs?.uiScale ?: UiScale.NORMAL
 
-            CwupScheduleTheme(isAmoled = isAmoled) {
-                pl.legnica.planzajec.ui.theme.LiquidGlassBackground(isAmoled = isAmoled) {
-                    val prefs = userPrefs
-                    if (prefs == null) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = Color(0xFF00D2FF))
-                        }
-                    } else if (!prefs.onboardingCompleted) {
-                        OnboardingScreen(
-                            viewModel = hiltViewModel(),
-                            onFinish = {
-                                // Onboarding completed, state will update via DataStore flow
+            LaunchedEffect(userPrefs?.selectedGroupCode, userPrefs?.notificationsEnabled) {
+                if (userPrefs?.selectedGroupCode != null && userPrefs?.notificationsEnabled == true) {
+                    ScheduleAlarmReceiver.triggerImmediateUpdate(this@MainActivity)
+                }
+            }
+
+            val currentDensity = LocalDensity.current
+            val scaledDensity = Density(
+                density = currentDensity.density * uiScale.factor,
+                fontScale = currentDensity.fontScale * uiScale.factor
+            )
+
+            CompositionLocalProvider(LocalDensity provides scaledDensity) {
+                CwupScheduleTheme(appTheme = appTheme, isAmoled = isAmoled) {
+                    pl.legnica.planzajec.ui.theme.LiquidGlassBackground(appTheme = appTheme, isAmoled = isAmoled) {
+                        val prefs = userPrefs
+                        if (prefs == null) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = Color(0xFF00D2FF))
                             }
-                        )
-                    } else {
-                        MainScreen(
-                            preferencesRepository = preferencesRepository,
-                            onChangeGroupClick = {
-                                scope.launch {
-                                    preferencesRepository.clearGroupSelection()
+                        } else if (!prefs.onboardingCompleted) {
+                            OnboardingScreen(
+                                viewModel = hiltViewModel(),
+                                onFinish = {
+                                    ScheduleAlarmReceiver.triggerImmediateUpdate(this@MainActivity)
                                 }
-                            }
-                        )
+                            )
+                        } else {
+                            MainScreen(
+                                preferencesRepository = preferencesRepository,
+                                onChangeGroupClick = {
+                                    scope.launch {
+                                        preferencesRepository.clearGroupSelection()
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }

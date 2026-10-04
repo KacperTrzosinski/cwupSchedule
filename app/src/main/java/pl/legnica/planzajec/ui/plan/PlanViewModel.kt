@@ -1,8 +1,10 @@
 package pl.legnica.planzajec.ui.plan
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,9 +16,8 @@ import pl.legnica.planzajec.data.preferences.FilterMode
 import pl.legnica.planzajec.data.preferences.UserPreferencesRepository
 import pl.legnica.planzajec.data.preferences.ViewMode
 import pl.legnica.planzajec.data.repository.ScheduleRepository
-import pl.legnica.planzajec.parser.model.WeekOption
+import pl.legnica.planzajec.notification.ScheduleAlarmReceiver
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
@@ -26,8 +27,6 @@ data class PlanUiState(
     val subgroup: String? = null,
     val availableSubgroups: List<String> = emptyList(),
     val lessons: List<LessonEntity> = emptyList(),
-    val availableWeeks: List<WeekOption> = emptyList(),
-    val selectedWeek: String = "",
     val viewMode: ViewMode = ViewMode.UPCOMING,
     val filterMode: FilterMode = FilterMode.ALL,
     val mergeBlocks: Boolean = false,
@@ -39,7 +38,8 @@ data class PlanUiState(
 @HiltViewModel
 class PlanViewModel @Inject constructor(
     private val repository: ScheduleRepository,
-    private val preferencesRepository: UserPreferencesRepository
+    private val preferencesRepository: UserPreferencesRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PlanUiState(isRefreshing = true))
@@ -76,7 +76,6 @@ class PlanViewModel @Inject constructor(
                         SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(metadata.lastSyncedMillis))
                     } else ""
 
-                    val weeksList = parseWeeksJson(metadata?.availableWeeksJson.orEmpty(), metadata?.selectedWeek.orEmpty())
                     val subgroups = repository.getAvailableSubgroups(groupCode)
 
                     val filteredLessons = when (prefs.filterMode) {
@@ -88,25 +87,30 @@ class PlanViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             lessons = filteredLessons,
-                            availableWeeks = weeksList,
-                            selectedWeek = metadata?.selectedWeek.orEmpty(),
                             availableSubgroups = subgroups,
                             lastUpdated = lastUpdatedFormatted,
                             isRefreshing = false
                         )
+                    }
+
+                    if (filteredLessons.isNotEmpty()) {
+                        ScheduleAlarmReceiver.triggerImmediateUpdate(context)
                     }
                 }
             }
         }
     }
 
-    fun refresh(weekDate: String? = null) {
+    fun refresh() {
         val groupCode = _uiState.value.groupCode
         if (groupCode.isBlank()) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
-            repository.refreshSchedule(groupCode, weekDate)
+            repository.refreshSchedule(groupCode)
+                .onSuccess {
+                    ScheduleAlarmReceiver.triggerImmediateUpdate(context)
+                }
                 .onFailure { err ->
                     _uiState.update {
                         it.copy(
@@ -118,31 +122,16 @@ class PlanViewModel @Inject constructor(
         }
     }
 
-    fun selectWeek(weekValue: String) {
-        refresh(weekValue)
-    }
-
     fun selectSubgroup(subgroup: String?) {
         viewModelScope.launch {
             preferencesRepository.updateSubgroup(subgroup)
+            ScheduleAlarmReceiver.triggerImmediateUpdate(context)
         }
     }
 
     fun setViewMode(mode: ViewMode) {
         viewModelScope.launch {
             preferencesRepository.setViewMode(mode)
-        }
-    }
-
-    private fun parseWeeksJson(json: String, selectedWeek: String): List<WeekOption> {
-        if (json.isBlank()) return emptyList()
-        return json.split(";").mapNotNull { entry ->
-            val parts = entry.split(":")
-            if (parts.size >= 2) {
-                val value = parts[0]
-                val label = parts[1]
-                WeekOption(value = value, label = label, isSelected = value == selectedWeek)
-            } else null
         }
     }
 }
