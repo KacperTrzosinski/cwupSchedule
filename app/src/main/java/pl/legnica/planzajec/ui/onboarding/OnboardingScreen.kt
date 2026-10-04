@@ -46,6 +46,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -274,7 +275,10 @@ fun OnboardingScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    LazyColumn(modifier = Modifier.height(180.dp)) {
+                    LazyColumn(
+                        modifier = Modifier.height(200.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         item {
                             SubgroupChoiceItem(
                                 label = "Pokaż wszystkie podgrupy",
@@ -307,9 +311,18 @@ private fun GlassDropdownField(
     var isExpanded by remember { mutableStateOf(false) }
     var filterText by remember { mutableStateOf("") }
 
+    val isSingleOption = items.size == 1
+    val displayValue = if (isSingleOption) items.first() else selectedValue
+
+    LaunchedEffect(items) {
+        if (isSingleOption && selectedValue == null) {
+            onItemSelected(items.first())
+        }
+    }
+
     val borderBrush = if (!isEnabled) {
         androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color.White.copy(alpha = 0.08f), Color.White.copy(alpha = 0.04f)))
-    } else if (selectedValue != null) {
+    } else if (displayValue != null) {
         pl.legnica.planzajec.ui.theme.GlassTokens.BorderBrush
     } else {
         androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color.White.copy(alpha = 0.20f), Color.White.copy(alpha = 0.06f)))
@@ -330,7 +343,7 @@ private fun GlassDropdownField(
                 .clip(RoundedCornerShape(16.dp))
                 .background(Color(0xFF0F172A).copy(alpha = if (isEnabled) 0.62f else 0.35f))
                 .border(1.dp, borderBrush, RoundedCornerShape(16.dp))
-                .clickable(enabled = isEnabled) { isExpanded = !isExpanded }
+                .clickable(enabled = isEnabled && !isSingleOption) { isExpanded = !isExpanded }
                 .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
             Row(
@@ -339,32 +352,40 @@ private fun GlassDropdownField(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = selectedValue ?: placeholder,
-                    color = if (selectedValue != null) TextPrimary else TextMuted,
+                    text = displayValue ?: placeholder,
+                    color = if (displayValue != null) TextPrimary else TextMuted,
                     fontSize = 15.sp,
                     maxLines = 1,
                     modifier = Modifier.weight(1f)
                 )
 
-                val rotation by animateFloatAsState(if (isExpanded) 180f else 0f, label = "arrowRotation")
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = null,
-                    tint = if (isEnabled) TextSecondary else TextMuted,
-                    modifier = Modifier.rotate(rotation)
-                )
+                if (isSingleOption) {
+                    Text(
+                        text = "🔒",
+                        fontSize = 16.sp,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                } else {
+                    val rotation by animateFloatAsState(if (isExpanded) 180f else 0f, label = "arrowRotation")
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = null,
+                        tint = if (isEnabled) TextSecondary else TextMuted,
+                        modifier = Modifier.rotate(rotation)
+                    )
+                }
             }
         }
 
-        // Expanded Selection Dialog for long lists with search
-        if (isExpanded && isEnabled) {
+        // Expanded Selection Dialog with separated card options and search filter
+        if (isExpanded && isEnabled && !isSingleOption) {
             AlertDialog(
                 onDismissRequest = { isExpanded = false },
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
                     .border(1.dp, pl.legnica.planzajec.ui.theme.GlassTokens.BorderBrush, RoundedCornerShape(20.dp)),
                 containerColor = Color(0xFF0F172A),
-                title = { Text(text = label, color = TextPrimary) },
+                title = { Text(text = label, color = TextPrimary, fontWeight = FontWeight.Bold) },
                 text = {
                     Column {
                         if (items.size > 5) {
@@ -374,7 +395,7 @@ private fun GlassDropdownField(
                                 placeholder = { Text("Filtruj listę...", color = TextMuted) },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(bottom = 8.dp),
+                                    .padding(bottom = 12.dp),
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = Color(0xFF00D2FF),
@@ -386,32 +407,51 @@ private fun GlassDropdownField(
                         }
 
                         val filtered = items.filter { it.contains(filterText, ignoreCase = true) }
-                        LazyColumn(modifier = Modifier.height(240.dp)) {
+                        LazyColumn(
+                            modifier = Modifier.height(280.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
                             items(filtered) { itemText ->
-                                Row(
+                                val isSelected = itemText == selectedValue
+                                Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(
+                                            if (isSelected) Color(0xFF00D2FF).copy(alpha = 0.16f)
+                                            else Color(0xFF131C2E).copy(alpha = 0.70f)
+                                        )
+                                        .border(
+                                            width = 1.dp,
+                                            color = if (isSelected) Color(0xFF00D2FF) else DarkSurfaceBorder.copy(alpha = 0.5f),
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
                                         .clickable {
                                             onItemSelected(itemText)
                                             isExpanded = false
                                         }
-                                        .padding(vertical = 12.dp, horizontal = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                        .padding(horizontal = 14.dp, vertical = 12.dp)
                                 ) {
-                                    Text(
-                                        text = itemText,
-                                        color = TextPrimary,
-                                        fontSize = 14.sp,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    if (itemText == selectedValue) {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = null,
-                                            tint = Color(0xFF06B6D4),
-                                            modifier = Modifier.size(18.dp)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = itemText,
+                                            color = if (isSelected) Color(0xFF00D2FF) else TextPrimary,
+                                            fontSize = 14.sp,
+                                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                            modifier = Modifier.weight(1f)
                                         )
+                                        if (isSelected) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = null,
+                                                tint = Color(0xFF00D2FF),
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -431,18 +471,45 @@ private fun GlassDropdownField(
 @Composable
 private fun SubgroupChoiceItem(
     label: String,
+    isSelected: Boolean = false,
     onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(DarkSurface)
-            .border(1.dp, DarkSurfaceBorder, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                if (isSelected) Color(0xFF00D2FF).copy(alpha = 0.16f)
+                else Color(0xFF131C2E).copy(alpha = 0.70f)
+            )
+            .border(
+                1.dp,
+                if (isSelected) Color(0xFF00D2FF) else DarkSurfaceBorder.copy(alpha = 0.5f),
+                RoundedCornerShape(12.dp)
+            )
             .clickable(onClick = onClick)
-            .padding(12.dp)
+            .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
-        Text(text = label, color = TextPrimary, fontSize = 14.sp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = label,
+                color = if (isSelected) Color(0xFF00D2FF) else TextPrimary,
+                fontSize = 14.sp,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                modifier = Modifier.weight(1f)
+            )
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color(0xFF00D2FF),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
     }
 }
