@@ -30,6 +30,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Refresh
@@ -105,17 +106,19 @@ fun PlanScreen(
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f, fill = false)
                             )
-                            if (!state.subgroup.isNullOrBlank()) {
+                            if (state.availableSubgroups.isNotEmpty() || !state.subgroup.isNullOrBlank()) {
                                 Spacer(modifier = Modifier.width(8.dp))
+                                val labelText = state.subgroup ?: "Wszystkie grupy"
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(Color(0xFF00D2FF).copy(alpha = 0.15f))
                                         .border(1.dp, Color(0xFF00D2FF).copy(alpha = 0.40f), RoundedCornerShape(8.dp))
-                                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                                        .clickable { showSubgroupDialog = true }
+                                        .padding(horizontal = 8.dp, vertical = 3.dp)
                                 ) {
                                     Text(
-                                        text = state.subgroup.orEmpty(),
+                                        text = labelText,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF00D2FF),
@@ -245,39 +248,76 @@ fun PlanScreen(
                 )
             },
             text = {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val isAllSelected = state.subgroup == null
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (state.subgroup == null) Color(0xFF00D2FF).copy(alpha = 0.2f) else DarkSurface)
-                            .border(1.dp, if (state.subgroup == null) Color(0xFF00D2FF) else DarkSurfaceBorder, RoundedCornerShape(10.dp))
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isAllSelected) Color(0xFF00D2FF).copy(alpha = 0.16f) else Color(0xFF131C2E).copy(alpha = 0.70f))
+                            .border(1.dp, if (isAllSelected) Color(0xFF00D2FF) else DarkSurfaceBorder.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                             .clickable {
                                 viewModel.selectSubgroup(null)
                                 showSubgroupDialog = false
                             }
-                            .padding(12.dp)
+                            .padding(horizontal = 14.dp, vertical = 12.dp)
                     ) {
-                        Text("Pokaż wszystkie", color = TextPrimary, fontSize = 14.sp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Pokaż wszystkie",
+                                color = if (isAllSelected) Color(0xFF00D2FF) else TextPrimary,
+                                fontSize = 14.sp,
+                                fontWeight = if (isAllSelected) FontWeight.SemiBold else FontWeight.Normal
+                            )
+                            if (isAllSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = Color(0xFF00D2FF),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
                     }
 
-                    Spacer(modifier = Modifier.height(6.dp))
-
                     state.availableSubgroups.forEach { sg ->
+                        val isSgSelected = state.subgroup == sg
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 3.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (state.subgroup == sg) Color(0xFF00D2FF).copy(alpha = 0.2f) else DarkSurface)
-                                .border(1.dp, if (state.subgroup == sg) Color(0xFF00D2FF) else DarkSurfaceBorder, RoundedCornerShape(10.dp))
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isSgSelected) Color(0xFF00D2FF).copy(alpha = 0.16f) else Color(0xFF131C2E).copy(alpha = 0.70f))
+                            .border(1.dp, if (isSgSelected) Color(0xFF00D2FF) else DarkSurfaceBorder.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                             .clickable {
                                     viewModel.selectSubgroup(sg)
                                     showSubgroupDialog = false
                                 }
-                                .padding(12.dp)
+                                .padding(horizontal = 14.dp, vertical = 12.dp)
                         ) {
-                            Text(sg, color = TextPrimary, fontSize = 14.sp)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = sg,
+                                    color = if (isSgSelected) Color(0xFF00D2FF) else TextPrimary,
+                                    fontSize = 14.sp,
+                                    fontWeight = if (isSgSelected) FontWeight.SemiBold else FontWeight.Normal
+                                )
+                                if (isSgSelected) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        tint = Color(0xFF00D2FF),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

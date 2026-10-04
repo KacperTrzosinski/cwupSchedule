@@ -338,14 +338,14 @@ fun SettingsScreen(
                         Text(text = "100% Prywatności i Open Source", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                     }
                     Text(
-                        text = "Aplikacja nie gromadzi żadnych danych osobowych, nie zawiera reklam ani zewnętrznych trackerów analitycznych. Komunikacja odbywa się bezpośrednio z serwerem uczelni.",
+                        text = "Aplikacja nie gromadzi żadnych danych osobowych, nie zawiera reklam ani zewnętrznych trackerów analitycznych. Komunikacja odbywa się bezpośrednio z publicznym serwerem planu zajęć.",
                         fontSize = 12.sp,
                         color = TextSecondary,
                         modifier = Modifier.padding(top = 6.dp)
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
-                    Text(text = "Wersja 1.0.0 · Collegium Witelona Legnica", fontSize = 11.sp, color = TextMuted)
+                    Text(text = "Wersja 1.0.0 · Niezależny czytnik planu zajęć", fontSize = 11.sp, color = TextMuted)
                 }
             }
 

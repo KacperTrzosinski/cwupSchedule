@@ -25,10 +25,10 @@ enum class AppTheme(val label: String) {
 }
 
 enum class UiScale(val factor: Float, val label: String) {
-    COMPACT(0.85f, "Mały (85%)"),
+    COMPACT(0.90f, "Mały (90%)"),
     NORMAL(1.0f, "Standard (100%)"),
-    LARGE(1.15f, "Duży (115%)"),
-    EXTRA_LARGE(1.30f, "B. duży (130%)")
+    LARGE(1.10f, "Duży (110%)"),
+    EXTRA_LARGE(1.20f, "B. duży (120%)")
 }
 
 data class UserPreferences(

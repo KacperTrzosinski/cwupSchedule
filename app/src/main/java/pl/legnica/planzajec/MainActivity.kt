@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
 
             val currentDensity = LocalDensity.current
             val scaledDensity = Density(
-                density = currentDensity.density * uiScale.factor,
+                density = currentDensity.density,
                 fontScale = currentDensity.fontScale * uiScale.factor
             )
 

@@ -115,7 +115,7 @@ fun OnboardingScreen(
         )
 
         Text(
-            text = "Collegium Witelona w Legnicy",
+            text = "Studencki plan zajęć",
             fontSize = 15.sp,
             color = TextSecondary,
             modifier = Modifier.padding(top = 4.dp, bottom = 28.dp)

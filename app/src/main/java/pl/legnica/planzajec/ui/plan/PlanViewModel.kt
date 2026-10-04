@@ -5,10 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pl.legnica.planzajec.data.local.entity.LessonEntity
@@ -49,56 +52,98 @@ class PlanViewModel @Inject constructor(
         observeData()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeData() {
         viewModelScope.launch {
-            preferencesRepository.userPreferencesFlow.collect { prefs ->
-                val groupCode = prefs.selectedGroupCode ?: return@collect
-                val subgroup = prefs.selectedSubgroup
+            preferencesRepository.userPreferencesFlow
+                .flatMapLatest { prefs ->
+                    val groupCode = prefs.selectedGroupCode ?: return@flatMapLatest flowOf(null)
+                    val subgroup = prefs.selectedSubgroup
 
-                _uiState.update {
-                    it.copy(
-                        groupCode = groupCode,
-                        subgroup = subgroup,
-                        viewMode = prefs.viewMode,
-                        filterMode = prefs.filterMode,
-                        mergeBlocks = prefs.mergeConsecutiveBlocks
-                    )
+                    combine(
+                        repository.getLessons(groupCode, subgroup),
+                        repository.getMetadata(groupCode)
+                    ) { lessonsList, metadata ->
+                        Triple(prefs, lessonsList, metadata)
+                    }
                 }
+                .collect { tuple ->
+                    if (tuple == null) return@collect
+                    val (prefs, lessonsList, metadata) = tuple
+                    val groupCode = prefs.selectedGroupCode.orEmpty()
+                    val subgroup = prefs.selectedSubgroup
 
-                // Load lessons and metadata
-                combine(
-                    repository.getLessons(groupCode, subgroup),
-                    repository.getMetadata(groupCode)
-                ) { lessonsList, metadata ->
-                    Pair(lessonsList, metadata)
-                }.collect { (lessonsList, metadata) ->
                     val lastUpdatedFormatted = if (metadata != null && metadata.lastSyncedMillis > 0) {
                         SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(metadata.lastSyncedMillis))
                     } else ""
 
                     val subgroups = repository.getAvailableSubgroups(groupCode)
 
-                    val filteredLessons = when (prefs.filterMode) {
+                    val filteredByMode = when (prefs.filterMode) {
                         FilterMode.CAMPUS_ONLY -> lessonsList.filter { !it.isOnline }
                         FilterMode.ONLINE_ONLY -> lessonsList.filter { it.isOnline }
                         FilterMode.ALL -> lessonsList
                     }
 
+                    val finalLessons = if (prefs.mergeConsecutiveBlocks) {
+                        mergeConsecutiveLessons(filteredByMode)
+                    } else {
+                        filteredByMode
+                    }
+
                     _uiState.update {
                         it.copy(
-                            lessons = filteredLessons,
+                            groupCode = groupCode,
+                            subgroup = subgroup,
+                            viewMode = prefs.viewMode,
+                            filterMode = prefs.filterMode,
+                            mergeBlocks = prefs.mergeConsecutiveBlocks,
+                            lessons = finalLessons,
                             availableSubgroups = subgroups,
                             lastUpdated = lastUpdatedFormatted,
                             isRefreshing = false
                         )
                     }
 
-                    if (filteredLessons.isNotEmpty()) {
+                    if (finalLessons.isNotEmpty()) {
                         ScheduleAlarmReceiver.triggerImmediateUpdate(context)
                     }
                 }
+        }
+    }
+
+    private fun mergeConsecutiveLessons(lessons: List<LessonEntity>): List<LessonEntity> {
+        if (lessons.isEmpty()) return emptyList()
+        val sorted = lessons.sortedWith(compareBy({ it.date }, { it.startTime }))
+        val result = mutableListOf<LessonEntity>()
+        var current: LessonEntity? = null
+
+        for (next in sorted) {
+            if (current == null) {
+                current = next
+                continue
+            }
+
+            val isSameDay = current.date == next.date
+            val isContiguousTime = current.endTime == next.startTime
+            val isSameSubject = current.subjectShort.equals(next.subjectShort, ignoreCase = true) ||
+                    current.subjectFull.equals(next.subjectFull, ignoreCase = true)
+            val isSameType = current.type == next.type
+            val isSameRoom = current.room.equals(next.room, ignoreCase = true)
+            val isSameTeacher = current.teacher.equals(next.teacher, ignoreCase = true)
+            val isSameOnline = current.isOnline == next.isOnline
+
+            if (isSameDay && isContiguousTime && isSameSubject && isSameType && isSameRoom && isSameTeacher && isSameOnline) {
+                current = current.copy(endTime = next.endTime)
+            } else {
+                result.add(current)
+                current = next
             }
         }
+        if (current != null) {
+            result.add(current)
+        }
+        return result
     }
 
     fun refresh() {

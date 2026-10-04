@@ -94,7 +94,7 @@ fun MainScreen(
                     tonalElevation = 0.dp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(64.dp)
+                        .height(68.dp)
                 ) {
                     NavigationDestination.entries.forEach { destination ->
                         val isSelected = currentDestination == destination

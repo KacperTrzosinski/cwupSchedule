@@ -1,5 +1,6 @@
 package pl.legnica.planzajec.ui.plan
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MeetingRoom
@@ -30,6 +32,9 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -69,7 +74,8 @@ fun LessonCard(
     val today = LocalDate.now()
     val isToday = lesson.date == today
     val isOngoing = isToday && !now.isBefore(lesson.startTime) && now.isBefore(lesson.endTime)
-    val isFinished = isToday && now.isAfter(lesson.endTime)
+    val isFinished = lesson.date.isBefore(today) || (isToday && now.isAfter(lesson.endTime))
+    var isSubjectExpanded by remember { mutableStateOf(false) }
 
     // Ongoing pulse animation
     val infiniteTransition = rememberInfiniteTransition(label = "cardPulse")
@@ -97,7 +103,7 @@ fun LessonCard(
             .clip(RoundedCornerShape(18.dp))
             .background(Color(0xFF0F172A).copy(alpha = if (isOngoing) 0.75f else 0.55f))
             .border(cardBorder.width, cardBorder.brush, RoundedCornerShape(18.dp))
-            .alpha(if (isFinished) 0.6f else 1.0f)
+            .alpha(if (isFinished) 0.45f else 1.0f)
     ) {
         // Specular top reflection
         Box(
@@ -115,7 +121,7 @@ fun LessonCard(
                 // Left Column: Times
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.width(62.dp)
+                    modifier = Modifier.widthIn(min = 58.dp)
                 ) {
                     Text(
                         text = lesson.startTime.format(DateTimeFormatter.ofPattern("HH:mm")),
@@ -148,15 +154,22 @@ fun LessonCard(
                 Spacer(modifier = Modifier.width(12.dp))
 
                 // Right Column: Details
-                Column(modifier = Modifier.weight(1f)) {
-                    // Subject Name
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .animateContentSize()
+                ) {
+                    // Subject Name (expandable on click)
                     Text(
                         text = lesson.subjectFull.ifBlank { lesson.subjectShort },
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        color = if (isFinished) TextSecondary else TextPrimary,
+                        maxLines = if (isSubjectExpanded) Int.MAX_VALUE else 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isSubjectExpanded = !isSubjectExpanded }
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
