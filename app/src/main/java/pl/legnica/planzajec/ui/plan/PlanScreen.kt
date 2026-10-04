@@ -509,12 +509,26 @@ private fun DayByDayView(
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        items(dayLessons, key = { "${it.id}_${it.startTime}" }) { lesson ->
-                            LessonCard(
-                                lesson = lesson,
-                                onTeacherClick = onTeacherClick,
-                                onRoomClick = onRoomClick
-                            )
+                        for (i in dayLessons.indices) {
+                            val current = dayLessons[i]
+                            item(key = "lesson_${current.id}_${current.startTime}") {
+                                LessonCard(
+                                    lesson = current,
+                                    onTeacherClick = onTeacherClick,
+                                    onRoomClick = onRoomClick
+                                )
+                            }
+
+                            // Break ("Okienko") indicator between consecutive lessons
+                            if (i < dayLessons.size - 1) {
+                                val next = dayLessons[i + 1]
+                                val breakMinutes = Duration.between(current.endTime, next.startTime).toMinutes()
+                                if (breakMinutes >= 30) {
+                                    item(key = "break_${current.id}_${next.id}") {
+                                        BreakIndicator(minutes = breakMinutes)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -576,7 +590,7 @@ private fun DayHeader(date: LocalDate, count: Int, isToday: Boolean) {
 }
 
 @Composable
-private fun BreakIndicator(minutes: Long) {
+fun BreakIndicator(minutes: Long) {
     val hours = minutes / 60
     val remMinutes = minutes % 60
     val text = if (hours > 0 && remMinutes > 0) {

@@ -20,19 +20,51 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 import pl.legnica.planzajec.data.preferences.AppTheme
 
-private data class AuroraPalette(
-    val bgStart: Color,
-    val bgEnd: Color,
-    val ribbon1: List<Color>,
-    val ribbon2: List<Color>,
-    val ribbon3: List<Color>,
-    val rays: List<Color>
+data class AuraNode(
+    val xRatio: Float,
+    val yRatio: Float,
+    val radiusRatio: Float,
+    val color: Color,
+    val alpha: Float = 0.38f
 )
+
+private data class AuraMeshPalette(
+    val baseColor: Color,
+    val nodes: List<AuraNode>
+)
+
+private object NoiseTextureHolder {
+    private var noiseShader: android.graphics.BitmapShader? = null
+
+    fun getShader(): android.graphics.BitmapShader {
+        return noiseShader ?: synchronized(this) {
+            noiseShader ?: run {
+                val size = 128
+                val pixels = IntArray(size * size)
+                val random = java.util.Random(1337)
+                for (i in pixels.indices) {
+                    val alpha = random.nextInt(15) // Subtle 0 to 14 alpha (~0.055 max)
+                    pixels[i] = android.graphics.Color.argb(alpha, 255, 255, 255)
+                }
+                val bitmap = android.graphics.Bitmap.createBitmap(pixels, size, size, android.graphics.Bitmap.Config.ARGB_8888)
+                val shader = android.graphics.BitmapShader(
+                    bitmap,
+                    android.graphics.Shader.TileMode.REPEAT,
+                    android.graphics.Shader.TileMode.REPEAT
+                )
+                noiseShader = shader
+                shader
+            }
+        }
+    }
+}
 
 @Composable
 fun LiquidGlassBackground(
@@ -45,91 +77,92 @@ fun LiquidGlassBackground(
     val (bgColor, palette) = when (effectiveTheme) {
         AppTheme.PURE_AMOLED -> Pair(AmoledBackground, null)
         AppTheme.AURORA_PURPLE -> Pair(
-            Color(0xFF070314),
-            AuroraPalette(
-                bgStart = Color(0xFF09041A),
-                bgEnd = Color(0xFF03010A),
-                ribbon1 = listOf(Color(0xFF00F0FF).copy(alpha = 0.40f), Color(0xFFA855F7).copy(alpha = 0.50f), Color(0xFFEC4899).copy(alpha = 0.45f), Color.Transparent),
-                ribbon2 = listOf(Color(0xFF818CF8).copy(alpha = 0.35f), Color(0xFFC084FC).copy(alpha = 0.45f), Color(0xFF2DD4BF).copy(alpha = 0.35f), Color.Transparent),
-                ribbon3 = listOf(Color(0xFFD946EF).copy(alpha = 0.30f), Color(0xFF38BDF8).copy(alpha = 0.35f), Color(0xFF6366F1).copy(alpha = 0.25f), Color.Transparent),
-                rays = listOf(Color(0xFFA855F7).copy(alpha = 0.22f), Color(0xFF38BDF8).copy(alpha = 0.18f), Color(0xFFEC4899).copy(alpha = 0.12f), Color.Transparent)
+            Color(0xFF040209),
+            AuraMeshPalette(
+                baseColor = Color(0xFF040209),
+                nodes = listOf(
+                    AuraNode(xRatio = 0.15f, yRatio = 0.20f, radiusRatio = 0.85f, color = Color(0xFF00F5D4), alpha = 0.35f),
+                    AuraNode(xRatio = 0.40f, yRatio = 0.45f, radiusRatio = 0.70f, color = Color(0xFF10B981), alpha = 0.26f),
+                    AuraNode(xRatio = 0.85f, yRatio = 0.75f, radiusRatio = 0.90f, color = Color(0xFFA855F7), alpha = 0.40f),
+                    AuraNode(xRatio = 0.70f, yRatio = 0.95f, radiusRatio = 0.75f, color = Color(0xFFEC4899), alpha = 0.25f)
+                )
             )
         )
         AppTheme.EMERALD_MATRIX -> Pair(
-            Color(0xFF010E07),
-            AuroraPalette(
-                bgStart = Color(0xFF011409),
-                bgEnd = Color(0xFF010604),
-                ribbon1 = listOf(Color(0xFF00FF87).copy(alpha = 0.40f), Color(0xFF10B981).copy(alpha = 0.50f), Color(0xFF06B6D4).copy(alpha = 0.40f), Color.Transparent),
-                ribbon2 = listOf(Color(0xFF34D399).copy(alpha = 0.35f), Color(0xFF84CC16).copy(alpha = 0.40f), Color(0xFF059669).copy(alpha = 0.45f), Color.Transparent),
-                ribbon3 = listOf(Color(0xFF14B8A6).copy(alpha = 0.30f), Color(0xFFA3E635).copy(alpha = 0.30f), Color(0xFF047857).copy(alpha = 0.35f), Color.Transparent),
-                rays = listOf(Color(0xFF10B981).copy(alpha = 0.22f), Color(0xFF34D399).copy(alpha = 0.18f), Color(0xFF06B6D4).copy(alpha = 0.12f), Color.Transparent)
+            Color(0xFF010A05),
+            AuraMeshPalette(
+                baseColor = Color(0xFF010A05),
+                nodes = listOf(
+                    AuraNode(xRatio = 0.85f, yRatio = 0.85f, radiusRatio = 0.90f, color = Color(0xFF34D399), alpha = 0.40f),
+                    AuraNode(xRatio = 0.30f, yRatio = 0.50f, radiusRatio = 0.75f, color = Color(0xFF10B981), alpha = 0.28f),
+                    AuraNode(xRatio = 0.15f, yRatio = 0.15f, radiusRatio = 0.70f, color = Color(0xFF059669), alpha = 0.22f)
+                )
             )
         )
         AppTheme.DEEP_OCEAN -> Pair(
-            Color(0xFF020B18),
-            AuroraPalette(
-                bgStart = Color(0xFF021024),
-                bgEnd = Color(0xFF01060F),
-                ribbon1 = listOf(Color(0xFF00E5FF).copy(alpha = 0.42f), Color(0xFF0284C7).copy(alpha = 0.50f), Color(0xFF2563EB).copy(alpha = 0.40f), Color.Transparent),
-                ribbon2 = listOf(Color(0xFF38BDF8).copy(alpha = 0.35f), Color(0xFF4F46E5).copy(alpha = 0.42f), Color(0xFF06B6D4).copy(alpha = 0.35f), Color.Transparent),
-                ribbon3 = listOf(Color(0xFF1D4ED8).copy(alpha = 0.30f), Color(0xFF00F5D4).copy(alpha = 0.30f), Color(0xFF3B82F6).copy(alpha = 0.35f), Color.Transparent),
-                rays = listOf(Color(0xFF0284C7).copy(alpha = 0.22f), Color(0xFF00E5FF).copy(alpha = 0.18f), Color(0xFF2563EB).copy(alpha = 0.12f), Color.Transparent)
+            Color(0xFF020712),
+            AuraMeshPalette(
+                baseColor = Color(0xFF020712),
+                nodes = listOf(
+                    AuraNode(xRatio = 0.50f, yRatio = 0.95f, radiusRatio = 0.90f, color = Color(0xFF00E5FF), alpha = 0.38f),
+                    AuraNode(xRatio = 0.25f, yRatio = 0.35f, radiusRatio = 0.85f, color = Color(0xFF1D4ED8), alpha = 0.34f),
+                    AuraNode(xRatio = 0.80f, yRatio = 0.60f, radiusRatio = 0.75f, color = Color(0xFF0284C7), alpha = 0.28f)
+                )
             )
         )
         AppTheme.LIQUID_OBSIDIAN -> Pair(
-            ObsidianBlack,
-            AuroraPalette(
-                bgStart = Color(0xFF07040E),
-                bgEnd = Color(0xFF020204),
-                ribbon1 = listOf(Color(0xFF00D2FF).copy(alpha = 0.42f), Color(0xFF8B5CF6).copy(alpha = 0.50f), Color(0xFFF43F5E).copy(alpha = 0.38f), Color.Transparent),
-                ribbon2 = listOf(Color(0xFFA855F7).copy(alpha = 0.35f), Color(0xFFEC4899).copy(alpha = 0.38f), Color(0xFF00F0FF).copy(alpha = 0.35f), Color.Transparent),
-                ribbon3 = listOf(Color(0xFF4F46E5).copy(alpha = 0.30f), Color(0xFFE11D48).copy(alpha = 0.28f), Color(0xFF06B6D4).copy(alpha = 0.32f), Color.Transparent),
-                rays = listOf(Color(0xFF8B5CF6).copy(alpha = 0.22f), Color(0xFF00D2FF).copy(alpha = 0.18f), Color(0xFFF43F5E).copy(alpha = 0.12f), Color.Transparent)
+            Color(0xFF030305),
+            AuraMeshPalette(
+                baseColor = Color(0xFF030305),
+                nodes = listOf(
+                    AuraNode(xRatio = 0.20f, yRatio = 0.25f, radiusRatio = 0.80f, color = Color(0xFF475569), alpha = 0.28f),
+                    AuraNode(xRatio = 0.80f, yRatio = 0.75f, radiusRatio = 0.85f, color = Color(0xFF334155), alpha = 0.28f),
+                    AuraNode(xRatio = 0.50f, yRatio = 0.50f, radiusRatio = 0.90f, color = Color(0xFF1E293B), alpha = 0.22f)
+                )
             )
         )
         AppTheme.CYBERPUNK_NEON -> Pair(
             Color(0xFF040209),
-            AuroraPalette(
-                bgStart = Color(0xFF090214),
-                bgEnd = Color(0xFF020106),
-                ribbon1 = listOf(Color(0xFFFF007F).copy(alpha = 0.45f), Color(0xFF00F0FF).copy(alpha = 0.50f), Color(0xFFFFE600).copy(alpha = 0.35f), Color.Transparent),
-                ribbon2 = listOf(Color(0xFF00E5FF).copy(alpha = 0.38f), Color(0xFFD946EF).copy(alpha = 0.45f), Color(0xFFFF0055).copy(alpha = 0.35f), Color.Transparent),
-                ribbon3 = listOf(Color(0xFF8B5CF6).copy(alpha = 0.35f), Color(0xFFFF007F).copy(alpha = 0.38f), Color(0xFF00F0FF).copy(alpha = 0.30f), Color.Transparent),
-                rays = listOf(Color(0xFFFF007F).copy(alpha = 0.22f), Color(0xFF00F0FF).copy(alpha = 0.20f), Color(0xFFFFE600).copy(alpha = 0.10f), Color.Transparent)
+            AuraMeshPalette(
+                baseColor = Color(0xFF040209),
+                nodes = listOf(
+                    AuraNode(xRatio = 0.15f, yRatio = 0.20f, radiusRatio = 0.85f, color = Color(0xFFFF007F), alpha = 0.38f),
+                    AuraNode(xRatio = 0.85f, yRatio = 0.80f, radiusRatio = 0.85f, color = Color(0xFF00F0FF), alpha = 0.36f),
+                    AuraNode(xRatio = 0.55f, yRatio = 0.50f, radiusRatio = 0.70f, color = Color(0xFF8B5CF6), alpha = 0.22f)
+                )
             )
         )
         AppTheme.CRIMSON_NIGHT -> Pair(
-            Color(0xFF080103),
-            AuroraPalette(
-                bgStart = Color(0xFF140205),
-                bgEnd = Color(0xFF040001),
-                ribbon1 = listOf(Color(0xFFE11D48).copy(alpha = 0.45f), Color(0xFFBE123C).copy(alpha = 0.50f), Color(0xFF991B1B).copy(alpha = 0.40f), Color.Transparent),
-                ribbon2 = listOf(Color(0xFFFB7185).copy(alpha = 0.35f), Color(0xFFDC2626).copy(alpha = 0.42f), Color(0xFF7F1D1D).copy(alpha = 0.40f), Color.Transparent),
-                ribbon3 = listOf(Color(0xFFF43F5E).copy(alpha = 0.30f), Color(0xFF881337).copy(alpha = 0.38f), Color(0xFFE11D48).copy(alpha = 0.28f), Color.Transparent),
-                rays = listOf(Color(0xFFE11D48).copy(alpha = 0.24f), Color(0xFFDC2626).copy(alpha = 0.18f), Color(0xFF7F1D1D).copy(alpha = 0.12f), Color.Transparent)
+            Color(0xFF060103),
+            AuraMeshPalette(
+                baseColor = Color(0xFF060103),
+                nodes = listOf(
+                    AuraNode(xRatio = 0.50f, yRatio = 0.85f, radiusRatio = 0.90f, color = Color(0xFFE11D48), alpha = 0.40f),
+                    AuraNode(xRatio = 0.80f, yRatio = 0.40f, radiusRatio = 0.75f, color = Color(0xFFFB7185), alpha = 0.30f),
+                    AuraNode(xRatio = 0.20f, yRatio = 0.20f, radiusRatio = 0.75f, color = Color(0xFF881337), alpha = 0.25f)
+                )
             )
         )
         AppTheme.MIDNIGHT_AMBER -> Pair(
-            Color(0xFF080602),
-            AuroraPalette(
-                bgStart = Color(0xFF120D04),
-                bgEnd = Color(0xFF030201),
-                ribbon1 = listOf(Color(0xFFF59E0B).copy(alpha = 0.45f), Color(0xFFD97706).copy(alpha = 0.50f), Color(0xFFB45309).copy(alpha = 0.40f), Color.Transparent),
-                ribbon2 = listOf(Color(0xFFFBBF24).copy(alpha = 0.38f), Color(0xFFEA580C).copy(alpha = 0.40f), Color(0xFF78350F).copy(alpha = 0.38f), Color.Transparent),
-                ribbon3 = listOf(Color(0xFFFDE68A).copy(alpha = 0.28f), Color(0xFFD97706).copy(alpha = 0.35f), Color(0xFF92400E).copy(alpha = 0.30f), Color.Transparent),
-                rays = listOf(Color(0xFFF59E0B).copy(alpha = 0.22f), Color(0xFFEA580C).copy(alpha = 0.18f), Color(0xFFB45309).copy(alpha = 0.12f), Color.Transparent)
+            Color(0xFF070502),
+            AuraMeshPalette(
+                baseColor = Color(0xFF070502),
+                nodes = listOf(
+                    AuraNode(xRatio = 0.60f, yRatio = 0.28f, radiusRatio = 0.85f, color = Color(0xFFF59E0B), alpha = 0.40f),
+                    AuraNode(xRatio = 0.35f, yRatio = 0.60f, radiusRatio = 0.80f, color = Color(0xFFEA580C), alpha = 0.35f),
+                    AuraNode(xRatio = 0.75f, yRatio = 0.90f, radiusRatio = 0.75f, color = Color(0xFFD97706), alpha = 0.30f)
+                )
             )
         )
         AppTheme.SYNTHWAVE_SUNSET -> Pair(
-            Color(0xFF06030F),
-            AuroraPalette(
-                bgStart = Color(0xFF0E051F),
-                bgEnd = Color(0xFF03010A),
-                ribbon1 = listOf(Color(0xFFF97316).copy(alpha = 0.42f), Color(0xFFEC4899).copy(alpha = 0.48f), Color(0xFF8B5CF6).copy(alpha = 0.45f), Color.Transparent),
-                ribbon2 = listOf(Color(0xFFFB923C).copy(alpha = 0.35f), Color(0xFFD946EF).copy(alpha = 0.42f), Color(0xFF6366F1).copy(alpha = 0.38f), Color.Transparent),
-                ribbon3 = listOf(Color(0xFFFF007F).copy(alpha = 0.32f), Color(0xFFF59E0B).copy(alpha = 0.30f), Color(0xFF7C3AED).copy(alpha = 0.35f), Color.Transparent),
-                rays = listOf(Color(0xFFEC4899).copy(alpha = 0.22f), Color(0xFFF97316).copy(alpha = 0.18f), Color(0xFF8B5CF6).copy(alpha = 0.15f), Color.Transparent)
+            Color(0xFF05020D),
+            AuraMeshPalette(
+                baseColor = Color(0xFF05020D),
+                nodes = listOf(
+                    AuraNode(xRatio = 0.20f, yRatio = 0.25f, radiusRatio = 0.85f, color = Color(0xFFF97316), alpha = 0.38f),
+                    AuraNode(xRatio = 0.85f, yRatio = 0.70f, radiusRatio = 0.85f, color = Color(0xFFEC4899), alpha = 0.38f),
+                    AuraNode(xRatio = 0.45f, yRatio = 0.95f, radiusRatio = 0.80f, color = Color(0xFF8B5CF6), alpha = 0.30f)
+                )
             )
         )
     }
@@ -144,94 +177,37 @@ fun LiquidGlassBackground(
                 val width = size.width
                 val height = size.height
 
-                // 1. Diagonal atmospheric background gradient
-                drawRect(
-                    brush = Brush.linearGradient(
-                        colors = listOf(palette.bgStart, palette.bgEnd),
-                        start = Offset(0f, 0f),
-                        end = Offset(width, height)
-                    )
-                )
+                // 1. Solid deep base color
+                drawRect(palette.baseColor)
 
-                // 2. Diffuse curtain light rays (northern lights shimmering columns)
-                drawRect(
-                    brush = Brush.verticalGradient(
-                        colors = palette.rays,
-                        startY = 0f,
-                        endY = height * 0.85f
+                // 2. Diffused Aura / Mesh Nodes with multi-stop radial gradient
+                val maxDim = maxOf(width, height)
+                palette.nodes.forEach { node ->
+                    val center = Offset(width * node.xRatio, height * node.yRatio)
+                    val radius = maxDim * node.radiusRatio
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colorStops = arrayOf(
+                                0.0f to node.color.copy(alpha = node.alpha),
+                                0.35f to node.color.copy(alpha = node.alpha * 0.65f),
+                                0.65f to node.color.copy(alpha = node.alpha * 0.20f),
+                                1.0f to Color.Transparent
+                            ),
+                            center = center,
+                            radius = radius
+                        ),
+                        center = center,
+                        radius = radius
                     )
-                )
-
-                // 3. Ribbon 1: Sweeping Upper Aurora Wave
-                val path1 = Path().apply {
-                    moveTo(-width * 0.15f, height * 0.04f)
-                    cubicTo(
-                        width * 0.35f, height * 0.20f,
-                        width * 0.65f, height * 0.02f,
-                        width * 1.15f, height * 0.16f
-                    )
-                    lineTo(width * 1.15f, height * 0.40f)
-                    cubicTo(
-                        width * 0.70f, height * 0.26f,
-                        width * 0.30f, height * 0.44f,
-                        -width * 0.15f, height * 0.24f
-                    )
-                    close()
                 }
-                drawPath(
-                    path = path1,
-                    brush = Brush.linearGradient(
-                        colors = palette.ribbon1,
-                        start = Offset(0f, 0f),
-                        end = Offset(width, height * 0.4f)
-                    )
-                )
 
-                // 4. Ribbon 2: Flowing Mid-screen Undulating Wave
-                val path2 = Path().apply {
-                    moveTo(-width * 0.20f, height * 0.38f)
-                    cubicTo(
-                        width * 0.25f, height * 0.28f,
-                        width * 0.70f, height * 0.55f,
-                        width * 1.20f, height * 0.44f
-                    )
-                    lineTo(width * 1.20f, height * 0.68f)
-                    cubicTo(
-                        width * 0.65f, height * 0.76f,
-                        width * 0.20f, height * 0.52f,
-                        -width * 0.20f, height * 0.60f
-                    )
-                    close()
+                // 3. Tactile film grain / micro-dither texture overlay
+                drawIntoCanvas { canvas ->
+                    val paint = android.graphics.Paint().apply {
+                        shader = NoiseTextureHolder.getShader()
+                    }
+                    canvas.nativeCanvas.drawRect(0f, 0f, width, height, paint)
                 }
-                drawPath(
-                    path = path2,
-                    brush = Brush.linearGradient(
-                        colors = palette.ribbon2,
-                        start = Offset(0f, height * 0.3f),
-                        end = Offset(width, height * 0.7f)
-                    )
-                )
-
-                // 5. Ribbon 3: Luminous Lower Horizon Wave
-                val path3 = Path().apply {
-                    moveTo(-width * 0.15f, height * 0.68f)
-                    cubicTo(
-                        width * 0.35f, height * 0.58f,
-                        width * 0.70f, height * 0.88f,
-                        width * 1.15f, height * 0.78f
-                    )
-                    lineTo(width * 1.15f, height * 1.05f)
-                    lineTo(-width * 0.15f, height * 1.05f)
-                    close()
-                }
-                drawPath(
-                    path = path3,
-                    brush = Brush.linearGradient(
-                        colors = palette.ribbon3,
-                        start = Offset(0f, height * 0.6f),
-                        end = Offset(width, height)
-                    )
-                )
             }
         }
 

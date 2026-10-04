@@ -45,7 +45,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.TextButton
 import pl.legnica.planzajec.data.local.entity.LessonEntity
+import pl.legnica.planzajec.ui.plan.BreakIndicator
 import pl.legnica.planzajec.ui.plan.LessonCard
 import pl.legnica.planzajec.ui.plan.PlanViewModel
 import pl.legnica.planzajec.ui.theme.DarkBackground
@@ -55,6 +57,7 @@ import pl.legnica.planzajec.ui.theme.DarkSurfaceElevated
 import pl.legnica.planzajec.ui.theme.TextMuted
 import pl.legnica.planzajec.ui.theme.TextPrimary
 import pl.legnica.planzajec.ui.theme.TextSecondary
+import java.time.Duration
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -71,8 +74,18 @@ fun CalendarScreen(
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
 
-    val daysWithLessons = state.lessons.map { it.date }.toSet()
-    val dayLessons = state.lessons.filter { it.date == selectedDate }.sortedBy { it.startTime }
+    val daysWithLessons = remember(state.lessons) {
+        state.lessons.map { it.date }.toSet()
+    }
+    val dayLessons = remember(state.lessons, selectedDate) {
+        state.lessons.filter { it.date == selectedDate }.sortedBy { it.startTime }
+    }
+
+    val monthFormatter = remember { DateTimeFormatter.ofPattern("LLLL yyyy", Locale("pl")) }
+    val selectedDateFormatter = remember { DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale("pl")) }
+
+    val today = remember { LocalDate.now() }
+    val currentActualMonth = remember { YearMonth.now() }
 
     Scaffold(
         topBar = {
@@ -84,6 +97,21 @@ fun CalendarScreen(
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
+                },
+                actions = {
+                    if (selectedDate != today || currentMonth != currentActualMonth) {
+                        TextButton(onClick = {
+                            selectedDate = today
+                            currentMonth = currentActualMonth
+                        }) {
+                            Text(
+                                text = "Dziś",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF00D2FF)
+                            )
+                        }
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
@@ -99,7 +127,7 @@ fun CalendarScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -107,7 +135,6 @@ fun CalendarScreen(
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Poprzedni miesiąc", tint = TextPrimary)
                 }
 
-                val monthFormatter = DateTimeFormatter.ofPattern("LLLL yyyy", Locale("pl"))
                 Text(
                     text = currentMonth.format(monthFormatter).replaceFirstChar { it.uppercase() },
                     fontSize = 16.sp,
@@ -121,7 +148,7 @@ fun CalendarScreen(
             }
 
             // Days of week header
-            val daysOfWeek = listOf("Pn", "Wt", "Śr", "Czw", "Pt", "Sb", "Nd")
+            val daysOfWeek = remember { listOf("Pn", "Wt", "Śr", "Czw", "Pt", "Sb", "Nd") }
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
                 daysOfWeek.forEach { dayName ->
                     Text(
@@ -135,11 +162,10 @@ fun CalendarScreen(
                 }
             }
 
-            // Month Grid
-            val firstDayOfMonth = currentMonth.atDay(1)
-            val dayOfWeekOffset = (firstDayOfMonth.dayOfWeek.value - 1) // 0 for Monday
-            val daysInMonth = currentMonth.lengthOfMonth()
-            val totalCells = dayOfWeekOffset + daysInMonth
+            // Month Grid Calculations
+            val firstDayOfMonth = remember(currentMonth) { currentMonth.atDay(1) }
+            val dayOfWeekOffset = remember(firstDayOfMonth) { (firstDayOfMonth.dayOfWeek.value - 1) } // 0 for Monday
+            val daysInMonth = remember(currentMonth) { currentMonth.lengthOfMonth() }
 
             Box(
                 modifier = Modifier
@@ -155,16 +181,16 @@ fun CalendarScreen(
                     modifier = Modifier.height(240.dp)
                 ) {
                     // Empty leading cells
-                    items(dayOfWeekOffset) {
-                        Spacer(modifier = Modifier.size(32.dp))
+                    items(dayOfWeekOffset, key = { "empty_${currentMonth}_$it" }) {
+                        Spacer(modifier = Modifier.size(34.dp))
                     }
 
                     // Month days
-                    items(daysInMonth) { dayIndex ->
+                    items(daysInMonth, key = { "day_${currentMonth}_${it + 1}" }) { dayIndex ->
                         val day = dayIndex + 1
                         val date = currentMonth.atDay(day)
                         val isSelected = date == selectedDate
-                        val isToday = date == LocalDate.now()
+                        val isDateToday = date == today
                         val hasLessons = daysWithLessons.contains(date)
 
                         Box(
@@ -175,13 +201,13 @@ fun CalendarScreen(
                                 .background(
                                     when {
                                         isSelected -> Color(0xFF00D2FF)
-                                        isToday -> Color(0xFF00D2FF).copy(alpha = 0.2f)
+                                        isDateToday -> Color(0xFF00D2FF).copy(alpha = 0.2f)
                                         else -> Color.Transparent
                                     }
                                 )
                                 .border(
                                     1.dp,
-                                    if (isToday && !isSelected) Color(0xFF00D2FF) else Color.Transparent,
+                                    if (isDateToday && !isSelected) Color(0xFF00D2FF) else Color.Transparent,
                                     RoundedCornerShape(8.dp)
                                 )
                                 .clickable { selectedDate = date },
@@ -191,7 +217,7 @@ fun CalendarScreen(
                                 Text(
                                     text = day.toString(),
                                     fontSize = 13.sp,
-                                    fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
+                                    fontWeight = if (isSelected || isDateToday) FontWeight.Bold else FontWeight.Normal,
                                     color = if (isSelected) Color.Black else TextPrimary
                                 )
                                 if (hasLessons) {
@@ -209,13 +235,12 @@ fun CalendarScreen(
             }
 
             // Selected date header
-            val selectedDateFormatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale("pl"))
             Text(
                 text = selectedDate.format(selectedDateFormatter).replaceFirstChar { it.uppercase() },
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 8.dp)
             )
 
             // Day lessons
@@ -233,12 +258,26 @@ fun CalendarScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(dayLessons) { lesson ->
-                        LessonCard(
-                            lesson = lesson,
-                            onTeacherClick = onTeacherClick,
-                            onRoomClick = onRoomClick
-                        )
+                    for (i in dayLessons.indices) {
+                        val current = dayLessons[i]
+                        item(key = "lesson_${current.id}_${current.startTime}") {
+                            LessonCard(
+                                lesson = current,
+                                onTeacherClick = onTeacherClick,
+                                onRoomClick = onRoomClick
+                            )
+                        }
+
+                        // Break ("Okienko") indicator between consecutive lessons
+                        if (i < dayLessons.size - 1) {
+                            val next = dayLessons[i + 1]
+                            val breakMinutes = Duration.between(current.endTime, next.startTime).toMinutes()
+                            if (breakMinutes >= 30) {
+                                item(key = "break_${current.id}_${next.id}") {
+                                    BreakIndicator(minutes = breakMinutes)
+                                }
+                            }
+                        }
                     }
                 }
             }
