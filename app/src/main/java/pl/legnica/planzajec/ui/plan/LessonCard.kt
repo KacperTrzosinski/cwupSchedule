@@ -89,29 +89,40 @@ fun LessonCard(
         label = "pulseAlpha"
     )
 
+    val uiStyle = pl.legnica.planzajec.ui.theme.LocalUiStyle.current
+
     val cardBorder = when {
         isOngoing -> BorderStrokeGradient(1.5.dp, Brush.horizontalGradient(listOf(Color(0xFF00D2FF), Color(0xFFEC4899), Color(0xFF8B5CF6))))
         lesson.changeFlag == ChangeFlag.CHANGED_ROOM_OR_TIME -> BorderStrokeGradient(1.dp, Brush.horizontalGradient(listOf(ChangeColorModified, ChangeColorModified)))
         lesson.changeFlag == ChangeFlag.NEW -> BorderStrokeGradient(1.dp, Brush.horizontalGradient(listOf(ChangeColorNew, ChangeColorNew)))
         lesson.changeFlag == ChangeFlag.CANCELLED -> BorderStrokeGradient(1.dp, Brush.horizontalGradient(listOf(ChangeColorCancelled, ChangeColorCancelled)))
+        uiStyle == pl.legnica.planzajec.data.preferences.UiStyle.GLASSMORPHISM -> BorderStrokeGradient(1.dp, pl.legnica.planzajec.ui.theme.GlassmorphismTokens.BorderBrush)
         else -> BorderStrokeGradient(1.dp, pl.legnica.planzajec.ui.theme.GlassTokens.BorderBrush)
+    }
+
+    val cardBg = if (uiStyle == pl.legnica.planzajec.data.preferences.UiStyle.GLASSMORPHISM) {
+        Color(0xFF0D111A).copy(alpha = if (isOngoing) 0.85f else 0.68f)
+    } else {
+        Color(0xFF0F172A).copy(alpha = if (isOngoing) 0.75f else 0.55f)
     }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFF0F172A).copy(alpha = if (isOngoing) 0.75f else 0.55f))
+            .background(cardBg)
             .border(cardBorder.width, cardBorder.brush, RoundedCornerShape(18.dp))
             .alpha(if (isFinished) 0.45f else 1.0f)
     ) {
-        // Specular top reflection
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(32.dp)
-                .background(pl.legnica.planzajec.ui.theme.GlassTokens.SpecularHighlight)
-        )
+        if (uiStyle == pl.legnica.planzajec.data.preferences.UiStyle.LIQUID_GLASS) {
+            // Specular top reflection
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(32.dp)
+                    .background(pl.legnica.planzajec.ui.theme.GlassTokens.SpecularHighlight)
+            )
+        }
 
         Column(modifier = Modifier.padding(14.dp)) {
             Row(

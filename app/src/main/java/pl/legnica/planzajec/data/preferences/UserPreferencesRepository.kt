@@ -35,6 +35,11 @@ enum class UiScale(val factor: Float, val label: String) {
     EXTRA_LARGE(1.20f, "B. duży (120%)")
 }
 
+enum class UiStyle(val label: String, val description: String) {
+    GLASSMORPHISM("Glassmorphism", "Nowy matowy styl ciemnego szkła z subtelną ramką"),
+    LIQUID_GLASS("Liquid Glass", "Klasyczny styl z gradientami i refleksami świetlnymi")
+}
+
 data class UserPreferences(
     val selectedDepartmentId: Int?,
     val selectedCourseName: String?,
@@ -43,6 +48,7 @@ data class UserPreferences(
     val isAmoledTheme: Boolean,
     val appTheme: AppTheme,
     val uiScale: UiScale,
+    val uiStyle: UiStyle = UiStyle.GLASSMORPHISM,
     val filterMode: FilterMode,
     val mergeConsecutiveBlocks: Boolean,
     val notificationsEnabled: Boolean,
@@ -73,6 +79,7 @@ class UserPreferencesRepository @Inject constructor(
         val IS_AMOLED_THEME = booleanPreferencesKey("is_amoled_theme")
         val APP_THEME = stringPreferencesKey("app_theme")
         val UI_SCALE = stringPreferencesKey("ui_scale")
+        val UI_STYLE = stringPreferencesKey("ui_style")
         val FILTER_MODE = stringPreferencesKey("filter_mode")
         val MERGE_CONSECUTIVE_BLOCKS = booleanPreferencesKey("merge_consecutive_blocks")
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
@@ -90,6 +97,8 @@ class UserPreferencesRepository @Inject constructor(
         val appTheme = try { AppTheme.valueOf(themeStr) } catch (_: Exception) { AppTheme.LIQUID_OBSIDIAN }
         val scaleStr = prefs[Keys.UI_SCALE] ?: UiScale.NORMAL.name
         val uiScale = try { UiScale.valueOf(scaleStr) } catch (_: Exception) { UiScale.NORMAL }
+        val styleStr = prefs[Keys.UI_STYLE] ?: UiStyle.GLASSMORPHISM.name
+        val uiStyle = try { UiStyle.valueOf(styleStr) } catch (_: Exception) { UiStyle.GLASSMORPHISM }
         val filterModeStr = prefs[Keys.FILTER_MODE] ?: FilterMode.ALL.name
         val filterMode = try { FilterMode.valueOf(filterModeStr) } catch (_: Exception) { FilterMode.ALL }
         val mergeBlocks = prefs[Keys.MERGE_CONSECUTIVE_BLOCKS] ?: false
@@ -106,6 +115,7 @@ class UserPreferencesRepository @Inject constructor(
             isAmoledTheme = isAmoled || appTheme == AppTheme.PURE_AMOLED,
             appTheme = appTheme,
             uiScale = uiScale,
+            uiStyle = uiStyle,
             filterMode = filterMode,
             mergeConsecutiveBlocks = mergeBlocks,
             notificationsEnabled = notifEnabled,
@@ -164,6 +174,12 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun setUiScale(scale: UiScale) {
         context.dataStore.edit {
             it[Keys.UI_SCALE] = scale.name
+        }
+    }
+
+    suspend fun setUiStyle(style: UiStyle) {
+        context.dataStore.edit {
+            it[Keys.UI_STYLE] = style.name
         }
     }
 

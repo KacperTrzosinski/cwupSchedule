@@ -61,8 +61,12 @@ class MainActivity : ComponentActivity() {
                 density = currentDensity.density,
                 fontScale = currentDensity.fontScale * uiScale.factor
             )
+            val uiStyle = userPrefs?.uiStyle ?: pl.legnica.planzajec.data.preferences.UiStyle.GLASSMORPHISM
 
-            CompositionLocalProvider(LocalDensity provides scaledDensity) {
+            CompositionLocalProvider(
+                LocalDensity provides scaledDensity,
+                pl.legnica.planzajec.ui.theme.LocalUiStyle provides uiStyle
+            ) {
                 CwupScheduleTheme(appTheme = appTheme, isAmoled = isAmoled) {
                     pl.legnica.planzajec.ui.theme.LiquidGlassBackground(appTheme = appTheme, isAmoled = isAmoled) {
                         val prefs = userPrefs

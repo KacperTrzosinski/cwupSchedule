@@ -51,12 +51,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Palette
 import pl.legnica.planzajec.data.preferences.AppTheme
 import pl.legnica.planzajec.data.preferences.FilterMode
 import pl.legnica.planzajec.data.preferences.UiScale
+import pl.legnica.planzajec.data.preferences.UiStyle
 import pl.legnica.planzajec.data.preferences.UserPreferencesRepository
 import pl.legnica.planzajec.ui.theme.DarkBackground
 import pl.legnica.planzajec.ui.theme.DarkSurface
@@ -169,6 +174,46 @@ fun SettingsScreen(
             // Section: Wygląd i personalizacja
             SettingsSectionHeader("Personalizacja i wygląd")
             SettingsCard {
+                // System UI Style Switcher (Glassmorphism vs Liquid Glass)
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Color(0xFF00D2FF), modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(text = "Styl interfejsu (System UI)", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                            Text(text = "Przełącznik między nowym Glassmorphism a klasycznym Liquid Glass", fontSize = 12.sp, color = TextSecondary)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    val currentStyle = prefs?.uiStyle ?: UiStyle.GLASSMORPHISM
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        UiStyleCard(
+                            title = "Glassmorphism",
+                            subtitle = "Ciemne, matowe szkło",
+                            badge = "NOWY",
+                            isSelected = currentStyle == UiStyle.GLASSMORPHISM,
+                            modifier = Modifier.weight(1f),
+                            onClick = { scope.launch { preferencesRepository.setUiStyle(UiStyle.GLASSMORPHISM) } }
+                        )
+
+                        UiStyleCard(
+                            title = "Liquid Glass",
+                            subtitle = "Płynne gradienty i blask",
+                            badge = "KLASYCZNY",
+                            isSelected = currentStyle == UiStyle.LIQUID_GLASS,
+                            modifier = Modifier.weight(1f),
+                            onClick = { scope.launch { preferencesRepository.setUiStyle(UiStyle.LIQUID_GLASS) } }
+                        )
+                    }
+                }
+
+                SettingsDivider()
+
                 // Motyw kolorystyczny
                 Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -176,7 +221,7 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(text = "Motyw kolorystyczny", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-                            Text(text = "Dopasuj akcenty i świecące gradienty Liquid Glass", fontSize = 12.sp, color = TextSecondary)
+                            Text(text = "Punktowe światło wyłaniające się zza ciemnego szkła", fontSize = 12.sp, color = TextSecondary)
                         }
                     }
 
@@ -185,8 +230,9 @@ fun SettingsScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         ThemeOptionItem(
                             title = "Liquid Obsidian",
-                            description = "Klasyczny neonowy cyjan i fiolet na czerni",
-                            paletteColors = listOf(Color(0xFF00D2FF), Color(0xFF8B5CF6), Color(0xFFEC4899)),
+                            description = "Monochromatyczna grafitowo-stalowa poświata na głębokiej czerni",
+                            badgeTag = "MESH",
+                            paletteColors = listOf(Color(0xFF475569), Color(0xFF334155), Color(0xFF1E293B)),
                             isSelected = (prefs?.appTheme ?: AppTheme.LIQUID_OBSIDIAN) == AppTheme.LIQUID_OBSIDIAN
                         ) {
                             scope.launch { preferencesRepository.setAppTheme(AppTheme.LIQUID_OBSIDIAN) }
@@ -194,8 +240,9 @@ fun SettingsScreen(
 
                         ThemeOptionItem(
                             title = "Aurora Purple",
-                            description = "Głęboki fiolet, magenta i zorza polarna",
-                            paletteColors = listOf(Color(0xFFA855F7), Color(0xFFEC4899), Color(0xFF38BDF8)),
+                            description = "Zorza polarna – szmaragdowy i fioletowy punkt świetlny",
+                            badgeTag = "AURA",
+                            paletteColors = listOf(Color(0xFFA855F7), Color(0xFF00F5D4), Color(0xFFEC4899)),
                             isSelected = prefs?.appTheme == AppTheme.AURORA_PURPLE
                         ) {
                             scope.launch { preferencesRepository.setAppTheme(AppTheme.AURORA_PURPLE) }
@@ -203,8 +250,9 @@ fun SettingsScreen(
 
                         ThemeOptionItem(
                             title = "Emerald Matrix",
-                            description = "Cybernetyczny szmaragd, mięta i limonka",
-                            paletteColors = listOf(Color(0xFF10B981), Color(0xFF34D399), Color(0xFF84CC16)),
+                            description = "Asymetryczna szałwiowa i szmaragdowa poświata w prawym rogu",
+                            badgeTag = "AURA",
+                            paletteColors = listOf(Color(0xFF34D399), Color(0xFF10B981), Color(0xFF059669)),
                             isSelected = prefs?.appTheme == AppTheme.EMERALD_MATRIX
                         ) {
                             scope.launch { preferencesRepository.setAppTheme(AppTheme.EMERALD_MATRIX) }
@@ -212,8 +260,9 @@ fun SettingsScreen(
 
                         ThemeOptionItem(
                             title = "Deep Ocean",
-                            description = "Błękit oceanu, kobalt i szafir",
-                            paletteColors = listOf(Color(0xFF0284C7), Color(0xFF2563EB), Color(0xFF06B6D4)),
+                            description = "Bioluminescencyjny błękit i cyjan wyłaniający się z mroku głębin",
+                            badgeTag = "MESH",
+                            paletteColors = listOf(Color(0xFF00E5FF), Color(0xFF1D4ED8), Color(0xFF0284C7)),
                             isSelected = prefs?.appTheme == AppTheme.DEEP_OCEAN
                         ) {
                             scope.launch { preferencesRepository.setAppTheme(AppTheme.DEEP_OCEAN) }
@@ -221,7 +270,8 @@ fun SettingsScreen(
 
                         ThemeOptionItem(
                             title = "Cyberpunk Neon",
-                            description = "Nocna metropolia, neonowy róż, cyjan i żółć",
+                            description = "Skupione punkty neonowego różu i elektrycznego cyjanu",
+                            badgeTag = "AURA",
                             paletteColors = listOf(Color(0xFFFF007F), Color(0xFF00F0FF), Color(0xFFFFE600)),
                             isSelected = prefs?.appTheme == AppTheme.CYBERPUNK_NEON
                         ) {
@@ -230,8 +280,9 @@ fun SettingsScreen(
 
                         ThemeOptionItem(
                             title = "Crimson Night",
-                            description = "Głęboka czerń z rubinową czerwienią i burgundem",
-                            paletteColors = listOf(Color(0xFFE11D48), Color(0xFFDC2626), Color(0xFF7F1D1D)),
+                            description = "Głęboki żar rubinowej czerwieni i burgundu za ciemnym szkłem",
+                            badgeTag = "AURA",
+                            paletteColors = listOf(Color(0xFFE11D48), Color(0xFF881337), Color(0xFFDC2626)),
                             isSelected = prefs?.appTheme == AppTheme.CRIMSON_NIGHT
                         ) {
                             scope.launch { preferencesRepository.setAppTheme(AppTheme.CRIMSON_NIGHT) }
@@ -239,7 +290,8 @@ fun SettingsScreen(
 
                         ThemeOptionItem(
                             title = "Midnight Amber",
-                            description = "Węglowa czerń z ciepłym złotem i bursztynem",
+                            description = "Ciepły żar zachodzącego słońca i bursztynu za węglowym wzgórzem",
+                            badgeTag = "MESH",
                             paletteColors = listOf(Color(0xFFF59E0B), Color(0xFFEA580C), Color(0xFF78350F)),
                             isSelected = prefs?.appTheme == AppTheme.MIDNIGHT_AMBER
                         ) {
@@ -248,7 +300,8 @@ fun SettingsScreen(
 
                         ThemeOptionItem(
                             title = "Synthwave Sunset",
-                            description = "Ciemny granat, zachód słońca, neonowy fiolet i koral",
+                            description = "Klimatyczny zachód słońca – neonowa pomarańcza i magenta",
+                            badgeTag = "AURA",
                             paletteColors = listOf(Color(0xFFF97316), Color(0xFFEC4899), Color(0xFF8B5CF6)),
                             isSelected = prefs?.appTheme == AppTheme.SYNTHWAVE_SUNSET
                         ) {
@@ -257,8 +310,9 @@ fun SettingsScreen(
 
                         ThemeOptionItem(
                             title = "Pure AMOLED",
-                            description = "100% głęboka czerń, wygaszone tło dla baterii OLED",
-                            paletteColors = listOf(Color(0xFF000000), Color(0xFF333333), Color(0xFF666666)),
+                            description = "Czysta czerń 0% światła – wygaszone piksele dla matryc OLED",
+                            badgeTag = "OLED",
+                            paletteColors = listOf(Color(0xFF000000), Color(0xFF222222), Color(0xFF444444)),
                             isSelected = prefs?.appTheme == AppTheme.PURE_AMOLED || prefs?.isAmoledTheme == true
                         ) {
                             scope.launch { preferencesRepository.setAppTheme(AppTheme.PURE_AMOLED) }
@@ -511,73 +565,179 @@ private fun FilterButton(label: String, isSelected: Boolean, onClick: () -> Unit
 }
 
 @Composable
-private fun ThemeOptionItem(
+private fun UiStyleCard(
     title: String,
-    description: String,
-    paletteColors: List<Color>,
+    subtitle: String,
+    badge: String,
     isSelected: Boolean,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(if (isSelected) Color(0xFF00D2FF).copy(alpha = 0.12f) else DarkSurfaceElevated.copy(alpha = 0.5f))
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(if (isSelected) Color(0xFF00D2FF).copy(alpha = 0.12f) else Color(0xFF090D16).copy(alpha = 0.70f))
             .border(
                 1.dp,
-                if (isSelected) Color(0xFF00D2FF) else DarkSurfaceBorder.copy(alpha = 0.5f),
-                RoundedCornerShape(12.dp)
+                if (isSelected) Color(0xFF00D2FF) else Color.White.copy(alpha = 0.12f),
+                RoundedCornerShape(14.dp)
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .padding(12.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+        Column {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(if (isSelected) Color(0xFF00D2FF).copy(alpha = 0.20f) else Color.White.copy(alpha = 0.08f))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
-                    paletteColors.forEach { color ->
-                        Box(
-                            modifier = Modifier
-                                .size(14.dp)
-                                .clip(androidx.compose.foundation.shape.CircleShape)
-                                .background(color)
-                                .border(1.dp, Color.White.copy(alpha = 0.3f), androidx.compose.foundation.shape.CircleShape)
-                        )
-                    }
+                    Text(
+                        text = badge,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isSelected) Color(0xFF00D2FF) else TextSecondary
+                    )
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column {
-                    Text(
-                        text = title,
-                        fontSize = 14.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) Color(0xFF00D2FF) else TextPrimary
-                    )
-                    Text(
-                        text = description,
-                        fontSize = 11.sp,
-                        color = TextSecondary
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = Color(0xFF00D2FF),
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = title,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) Color(0xFF00D2FF) else TextPrimary
+            )
+            Text(
+                text = subtitle,
+                fontSize = 11.sp,
+                color = TextSecondary
+            )
+        }
+    }
+}
+
+@Composable
+private fun ThemeOptionItem(
+    title: String,
+    description: String,
+    badgeTag: String = "AURA",
+    paletteColors: List<Color>,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val primaryColor = paletteColors.firstOrNull() ?: Color(0xFF00D2FF)
+    val secondaryColor = paletteColors.getOrNull(1) ?: primaryColor
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0xFF090D16).copy(alpha = 0.85f))
+            .border(
+                1.dp,
+                if (isSelected) Color(0xFF00D2FF) else Color.White.copy(alpha = 0.10f),
+                RoundedCornerShape(14.dp)
+            )
+            .clickable(onClick = onClick)
+    ) {
+        // Subtle point light blooming behind dark smoked glass
+        Canvas(modifier = Modifier.matchParentSize()) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        primaryColor.copy(alpha = if (isSelected) 0.35f else 0.22f),
+                        secondaryColor.copy(alpha = if (isSelected) 0.14f else 0.06f),
+                        Color.Transparent
+                    ),
+                    center = Offset(size.width * 0.90f, size.height * 0.50f),
+                    radius = size.width * 0.55f
+                ),
+                center = Offset(size.width * 0.90f, size.height * 0.50f),
+                radius = size.width * 0.55f
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color.White.copy(alpha = 0.08f))
+                            .border(0.5.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = badgeTag,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextSecondary
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = title,
+                        fontSize = 14.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                        color = if (isSelected) Color(0xFF00D2FF) else TextPrimary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = description,
+                    fontSize = 11.sp,
+                    color = TextSecondary,
+                    maxLines = 2
+                )
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
             if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = Color(0xFF00D2FF),
-                    modifier = Modifier.size(20.dp)
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFF00D2FF).copy(alpha = 0.20f))
+                        .border(1.dp, Color(0xFF00D2FF), RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = Color(0xFF00D2FF),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(1.dp, Color.White.copy(alpha = 0.20f), RoundedCornerShape(10.dp))
                 )
             }
         }
