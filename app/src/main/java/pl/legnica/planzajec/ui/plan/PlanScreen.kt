@@ -62,10 +62,12 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pl.legnica.planzajec.data.local.entity.LessonEntity
 import pl.legnica.planzajec.data.preferences.ViewMode
+import pl.legnica.planzajec.ui.navigation.LocalBottomBarPadding
 import pl.legnica.planzajec.ui.theme.DarkSurface
 import pl.legnica.planzajec.ui.theme.DarkSurfaceBorder
 import pl.legnica.planzajec.ui.theme.GlassTokens
@@ -179,16 +181,17 @@ fun PlanScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
+                    containerColor = Color(0xFF070B12).copy(alpha = 0.85f)
                 )
             )
         },
         containerColor = Color.Transparent
     ) { paddingValues ->
+        val bottomBarPadding = LocalBottomBarPadding.current
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Offline banner if error occurred
@@ -214,6 +217,8 @@ fun PlanScreen(
                         ViewMode.UPCOMING -> {
                             UpcomingLessonsView(
                                 lessons = state.lessons,
+                                modifier = Modifier.weight(1f).fillMaxWidth(),
+                                bottomBarPadding = bottomBarPadding,
                                 onTeacherClick = onTeacherClick,
                                 onRoomClick = onRoomClick
                             )
@@ -221,6 +226,8 @@ fun PlanScreen(
                         ViewMode.DAY_BY_DAY -> {
                             DayByDayView(
                                 lessons = state.lessons,
+                                modifier = Modifier.weight(1f).fillMaxWidth(),
+                                bottomBarPadding = bottomBarPadding,
                                 onTeacherClick = onTeacherClick,
                                 onRoomClick = onRoomClick
                             )
@@ -330,6 +337,8 @@ fun PlanScreen(
 @Composable
 private fun UpcomingLessonsView(
     lessons: List<LessonEntity>,
+    modifier: Modifier = Modifier,
+    bottomBarPadding: Dp = 0.dp,
     onTeacherClick: (String) -> Unit,
     onRoomClick: (String) -> Unit
 ) {
@@ -338,7 +347,8 @@ private fun UpcomingLessonsView(
     val groupedByDate = upcomingLessons.groupBy { it.date }.toSortedMap()
 
     LazyColumn(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        modifier = modifier,
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = bottomBarPadding + 20.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         groupedByDate.forEach { (date, dayLessons) ->
@@ -377,6 +387,8 @@ private fun UpcomingLessonsView(
 @Composable
 private fun DayByDayView(
     lessons: List<LessonEntity>,
+    modifier: Modifier = Modifier,
+    bottomBarPadding: Dp = 0.dp,
     onTeacherClick: (String) -> Unit,
     onRoomClick: (String) -> Unit
 ) {
@@ -398,7 +410,7 @@ private fun DayByDayView(
 
     var totalDragX by remember { mutableFloatStateOf(0f) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier) {
         // Date Selector Row
         LazyRow(
             state = listState,
@@ -460,7 +472,8 @@ private fun DayByDayView(
         // Lessons for selected date with swipe gesture detection
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .weight(1f)
+                .fillMaxWidth()
                 .pointerInput(selectedDate, allDates) {
                     detectHorizontalDragGestures(
                         onDragStart = { totalDragX = 0f },
@@ -506,7 +519,8 @@ private fun DayByDayView(
                     }
                 } else {
                     LazyColumn(
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = bottomBarPadding + 20.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         for (i in dayLessons.indices) {

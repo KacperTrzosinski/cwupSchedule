@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.TextButton
 import pl.legnica.planzajec.data.local.entity.LessonEntity
+import pl.legnica.planzajec.ui.navigation.LocalBottomBarPadding
 import pl.legnica.planzajec.ui.plan.BreakIndicator
 import pl.legnica.planzajec.ui.plan.LessonCard
 import pl.legnica.planzajec.ui.plan.PlanViewModel
@@ -113,15 +114,18 @@ fun CalendarScreen(
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF070B12).copy(alpha = 0.85f)
+                )
             )
         },
         containerColor = Color.Transparent
     ) { paddingValues ->
+        val bottomBarPadding = LocalBottomBarPadding.current
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
         ) {
             // Month navigation
             Row(
@@ -247,7 +251,8 @@ fun CalendarScreen(
             if (dayLessons.isEmpty()) {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(1f)
+                        .fillMaxWidth()
                         .padding(32.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -255,7 +260,10 @@ fun CalendarScreen(
                 }
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = bottomBarPadding + 20.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     for (i in dayLessons.indices) {

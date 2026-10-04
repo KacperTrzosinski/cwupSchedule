@@ -63,6 +63,7 @@ import pl.legnica.planzajec.data.preferences.FilterMode
 import pl.legnica.planzajec.data.preferences.UiScale
 import pl.legnica.planzajec.data.preferences.UiStyle
 import pl.legnica.planzajec.data.preferences.UserPreferencesRepository
+import pl.legnica.planzajec.ui.navigation.LocalBottomBarPadding
 import pl.legnica.planzajec.ui.theme.DarkBackground
 import pl.legnica.planzajec.ui.theme.DarkSurface
 import pl.legnica.planzajec.ui.theme.DarkSurfaceBorder
@@ -92,15 +93,18 @@ fun SettingsScreen(
                         color = TextPrimary
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF070B12).copy(alpha = 0.85f)
+                )
             )
         },
         containerColor = Color.Transparent
     ) { paddingValues ->
+        val bottomBarPadding = LocalBottomBarPadding.current
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
@@ -439,7 +443,7 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(bottomBarPadding + 32.dp))
         }
     }
 

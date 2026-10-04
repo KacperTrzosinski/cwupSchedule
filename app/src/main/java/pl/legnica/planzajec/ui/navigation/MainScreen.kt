@@ -44,7 +44,13 @@ import pl.legnica.planzajec.ui.theme.DarkSurfaceBorder
 import pl.legnica.planzajec.ui.theme.TextMuted
 import pl.legnica.planzajec.ui.theme.TextPrimary
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.unit.Dp
+
+val LocalBottomBarPadding = compositionLocalOf { 0.dp }
 
 enum class NavigationDestination(
     val title: String,
@@ -68,6 +74,7 @@ fun MainScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             Box(
                 modifier = Modifier
@@ -129,27 +136,28 @@ fun MainScreen(
             }
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            when (currentDestination) {
-                NavigationDestination.PLAN -> {
-                    PlanScreen(
-                        viewModel = planViewModel
-                    )
-                }
-                NavigationDestination.CALENDAR -> {
-                    CalendarScreen(
-                        viewModel = planViewModel
-                    )
-                }
-                NavigationDestination.SETTINGS -> {
-                    SettingsScreen(
-                        preferencesRepository = preferencesRepository,
-                        onChangeGroupClick = onChangeGroupClick
-                    )
+        val bottomBarPadding = paddingValues.calculateBottomPadding()
+        CompositionLocalProvider(LocalBottomBarPadding provides bottomBarPadding) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when (currentDestination) {
+                    NavigationDestination.PLAN -> {
+                        PlanScreen(
+                            viewModel = planViewModel
+                        )
+                    }
+                    NavigationDestination.CALENDAR -> {
+                        CalendarScreen(
+                            viewModel = planViewModel
+                        )
+                    }
+                    NavigationDestination.SETTINGS -> {
+                        SettingsScreen(
+                            preferencesRepository = preferencesRepository,
+                            onChangeGroupClick = onChangeGroupClick
+                        )
+                    }
                 }
             }
         }
