@@ -114,16 +114,23 @@ class ScheduleParser {
 
     private fun parseLegend(doc: Element): Map<String, String> {
         val legendMap = mutableMapOf<String, String>()
-        val legendTables = doc.select("table.TabLegenda")
-        for (table in legendTables) {
-            val rows = table.select("tr")
-            for (row in rows) {
-                val cells = row.select("td")
-                if (cells.size >= 2) {
-                    val shortCode = cells[0].text().trim()
-                    val fullName = cells[1].text().trim()
-                    if (shortCode.isNotBlank() && fullName.isNotBlank() && shortCode != "Skrót" && shortCode != "P" && shortCode != "N") {
-                        legendMap[shortCode] = fullName
+        val allTables = doc.select("table")
+        for (table in allTables) {
+            val isLegendTable = table.hasClass("TabLegenda") ||
+                table.select("th").any { it.text().contains("skr", ignoreCase = true) }
+            if (isLegendTable) {
+                val rows = table.select("tr")
+                for (row in rows) {
+                    val cells = row.select("td")
+                    if (cells.size >= 2) {
+                        val shortCode = cells[0].text().trim()
+                        val fullName = cells[1].text().trim()
+                        if (shortCode.isNotBlank() && fullName.isNotBlank() &&
+                            !shortCode.startsWith("Skr", ignoreCase = true) &&
+                            shortCode != "P" && shortCode != "N"
+                        ) {
+                            legendMap[shortCode] = fullName
+                        }
                     }
                 }
             }
@@ -261,10 +268,9 @@ class ScheduleParser {
         val rawType = typeMatch?.groupValues?.get(1)?.trim().orEmpty()
         val subjectShort = cleanSubject.replace(Regex("""\([^)]+\)"""), "").trim()
         val lessonType = LessonType.fromRaw(rawType)
-
-        val subjectFull = legend[subjectShort] ?: subjectShort
-
-        // Online room detection: Online_<nr>, Online <nr>, Online
+        val subjectFull = legend.entries.firstOrNull { it.key.equals(subjectShort, ignoreCase = true) }?.value
+            ?: legend[subjectShort]
+            ?: subjectShort
         val onlineMatch = Regex("""online[_\s]*(\d+)?""", RegexOption.IGNORE_CASE).find(roomTrimmed)
         val isOnline = onlineMatch != null
         val onlineId = onlineMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotBlank() }

@@ -125,15 +125,18 @@ class PlanViewModel @Inject constructor(
             }
 
             val isSameDay = current.date == next.date
-            val isContiguousTime = current.endTime == next.startTime
+            val minutesBetween = java.time.Duration.between(current.endTime, next.startTime).toMinutes()
+            val isContiguousTime = minutesBetween in 0..25
             val isSameSubject = current.subjectShort.equals(next.subjectShort, ignoreCase = true) ||
                     current.subjectFull.equals(next.subjectFull, ignoreCase = true)
             val isSameType = current.type == next.type
             val isSameRoom = current.room.equals(next.room, ignoreCase = true)
             val isSameTeacher = current.teacher.equals(next.teacher, ignoreCase = true)
             val isSameOnline = current.isOnline == next.isOnline
+            val isSameSubgroup = current.subgroup.equals(next.subgroup, ignoreCase = true) ||
+                    current.subgroup.isNullOrBlank() || next.subgroup.isNullOrBlank()
 
-            if (isSameDay && isContiguousTime && isSameSubject && isSameType && isSameRoom && isSameTeacher && isSameOnline) {
+            if (isSameDay && isContiguousTime && isSameSubject && isSameType && isSameRoom && isSameTeacher && isSameOnline && isSameSubgroup) {
                 current = current.copy(endTime = next.endTime)
             } else {
                 result.add(current)

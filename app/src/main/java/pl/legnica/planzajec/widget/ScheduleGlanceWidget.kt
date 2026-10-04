@@ -42,6 +42,7 @@ import pl.legnica.planzajec.data.local.dao.LessonDao
 import pl.legnica.planzajec.data.local.entity.LessonEntity
 import pl.legnica.planzajec.data.preferences.UserPreferencesRepository
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -94,10 +95,14 @@ class ScheduleGlanceWidget : GlanceAppWidget() {
         val groupCode = prefs.selectedGroupCode.orEmpty()
         val subgroup = prefs.selectedSubgroup
         val today = LocalDate.now()
+        val nowTime = LocalTime.now()
 
         val allUpcoming = if (groupCode.isNotBlank()) {
             entryPoint.lessonDao().getUpcomingLessons(groupCode, today).first()
                 .filter { subgroup.isNullOrBlank() || it.subgroup.isNullOrBlank() || it.subgroup == subgroup }
+                .filter { lesson ->
+                    lesson.date.isAfter(today) || (lesson.date == today && nowTime.isBefore(lesson.endTime))
+                }
         } else {
             emptyList()
         }
@@ -160,7 +165,7 @@ class ScheduleGlanceWidget : GlanceAppWidget() {
                     )
                 )
                 Text(
-                    text = nextLesson.subjectShort.ifBlank { nextLesson.subjectFull },
+                    text = nextLesson.subjectFull.ifBlank { nextLesson.subjectShort },
                     maxLines = 2,
                     style = TextStyle(
                         color = color(TEXT_PRIMARY),
@@ -332,7 +337,7 @@ class ScheduleGlanceWidget : GlanceAppWidget() {
 
                 Column(modifier = GlanceModifier.defaultWeight()) {
                     Text(
-                        text = lesson.subjectShort.ifBlank { lesson.subjectFull },
+                        text = lesson.subjectFull.ifBlank { lesson.subjectShort },
                         maxLines = 1,
                         style = TextStyle(
                             color = color(TEXT_PRIMARY),

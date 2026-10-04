@@ -53,6 +53,7 @@ class ScheduleAlarmReceiver : BroadcastReceiver() {
         val prefs = preferencesRepository.userPreferencesFlow.first()
         if (!prefs.notificationsEnabled || prefs.selectedGroupCode == null) {
             NotificationPublisher.dismiss(context)
+            pl.legnica.planzajec.widget.ScheduleGlanceWidget.updateWidget(context)
             return
         }
 
@@ -65,7 +66,10 @@ class ScheduleAlarmReceiver : BroadcastReceiver() {
         // 1. Update system notification in place
         NotificationPublisher.updateNotification(context, plan.state)
 
-        // 2. Schedule next alarms
+        // 2. Update home screen widget
+        pl.legnica.planzajec.widget.ScheduleGlanceWidget.updateWidget(context)
+
+        // 3. Schedule next alarms
         scheduleAlarms(context, plan.alarms)
     }
 

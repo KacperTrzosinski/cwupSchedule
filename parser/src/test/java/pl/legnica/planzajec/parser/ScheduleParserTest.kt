@@ -51,6 +51,12 @@ class ScheduleParserTest {
         val variantLessons = result.lessons.filter { it.isVariant }
         assertTrue(variantLessons.isNotEmpty(), "Should detect variant/Rozne lessons")
 
+        // Verify semester legend and subjectFull expansion
+        assertTrue(result.legend.isNotEmpty(), "Semester legend should be extracted")
+        val pigLesson = result.lessons.firstOrNull { it.subjectShort.equals("Pig", ignoreCase = true) }
+        assertNotNull(pigLesson, "Should find Pig lesson")
+        assertTrue(pigLesson!!.subjectFull.contains("interfejs", ignoreCase = true), "Pig should expand to full name, got: ${pigLesson.subjectFull}")
+
         // Verify variants table
         assertTrue(result.variants.isNotEmpty(), "Should extract variant options from Legenda tables")
     }

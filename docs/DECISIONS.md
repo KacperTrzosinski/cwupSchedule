@@ -19,4 +19,4 @@ Poniższy dokument rejestruje wszystkie istotne założenia i decyzje techniczne
 - **Decyzja:** Wykorzystanie `AlarmManager.setExactAndAllowWhileIdle` do precyzyjnego budzenia aplikacji 60 minut przed zajęciami, na start każdego bloku oraz na zakończenie dnia. Aktualizacja powiadomienia następuje w miejscu za pomocą stałego ID i `setOnlyAlertOnce(true)`.
 
 ### [2026-10-03] Decyzja 4: Pakiety aplikacji i licencja
-- **Decyzja:** Główny pakiet aplikacji to `pl.legnica.planzajec`, a pakiet parsera `pl.legnica.planzajec.parser`. Projekt wydawany jest na licencji open-source MIT.
+- **Decyzja:** Główny pakiet aplikacji to `pl.legnica.planzajec`, a pakiet parsera `pl.legnica.planzajec.parser`. Projekt wydawany jest na licencji MIT z wymogiem zachowania widocznej atrybucji pierwotnego autorstwa (Autor: Kacper Trzosiński).

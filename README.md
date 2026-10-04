@@ -88,7 +88,7 @@ Aplikacja:
 - **Nie zbiera ani nie przetwarza** żadnych danych osobowych.
 - **Nie posiada** modułów analitycznych ani reklamowych (brak Firebase Analytics, AdMob itp.).
 - Łączy się **wyłącznie** bezpośrednio z oficjalnym serwerem planu uczelni (`plan.pwsz.legnica.edu.pl`).
-- Kod źródłowy jest w 100% jawny i otwarty na licencji [MIT](LICENSE).
+- Kod źródłowy jest w 100% jawny i otwarty na licencji [MIT z wymogiem atrybucji autora](LICENSE) (Autor: Kacper Trzosiński).
 
 ---
 
