@@ -230,8 +230,14 @@ class ScheduleGlanceWidget : GlanceAppWidget() {
 
             val displayLessons = lessons.take(2)
             if (displayLessons.isNotEmpty()) {
+                var lastDate: LocalDate? = null
                 displayLessons.forEachIndexed { index, lesson ->
-                    if (index > 0) Spacer(modifier = GlanceModifier.height(4.dp))
+                    if (lastDate == null || lesson.date != lastDate) {
+                        WidgetDayDivider(date = lesson.date, isFirst = index == 0)
+                        lastDate = lesson.date
+                    } else if (index > 0) {
+                        Spacer(modifier = GlanceModifier.height(4.dp))
+                    }
                     WidgetLessonRow(lesson = lesson)
                 }
             } else {
@@ -277,12 +283,18 @@ class ScheduleGlanceWidget : GlanceAppWidget() {
                 )
             }
 
-            Spacer(modifier = GlanceModifier.height(8.dp))
+            Spacer(modifier = GlanceModifier.height(6.dp))
 
             val displayLessons = lessons.take(5)
             if (displayLessons.isNotEmpty()) {
+                var lastDate: LocalDate? = null
                 displayLessons.forEachIndexed { index, lesson ->
-                    if (index > 0) Spacer(modifier = GlanceModifier.height(6.dp))
+                    if (lastDate == null || lesson.date != lastDate) {
+                        WidgetDayDivider(date = lesson.date, isFirst = index == 0)
+                        lastDate = lesson.date
+                    } else if (index > 0) {
+                        Spacer(modifier = GlanceModifier.height(4.dp))
+                    }
                     WidgetLessonRow(lesson = lesson)
                 }
             } else {
@@ -299,6 +311,39 @@ class ScheduleGlanceWidget : GlanceAppWidget() {
                     )
                 }
             }
+        }
+    }
+
+    @androidx.compose.runtime.Composable
+    private fun WidgetDayDivider(date: LocalDate, isFirst: Boolean) {
+        val today = LocalDate.now()
+        val dayLabel = when (date) {
+            today -> "DZISIAJ"
+            today.plusDays(1) -> "JUTRO"
+            else -> date.format(DateTimeFormatter.ofPattern("EEE, d.MM", Locale("pl"))).replaceFirstChar { it.uppercase() }
+        }
+
+        Row(
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .padding(top = if (isFirst) 0.dp else 4.dp, bottom = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = dayLabel,
+                style = TextStyle(
+                    color = color(CYAN_ACCENT),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            Spacer(modifier = GlanceModifier.width(6.dp))
+            Box(
+                modifier = GlanceModifier
+                    .defaultWeight()
+                    .height(1.dp)
+                    .background(color(Color(0xFF334155)))
+            ) {}
         }
     }
 

@@ -220,6 +220,42 @@ fun SettingsScreen(
                         }
 
                         ThemeOptionItem(
+                            title = "Cyberpunk Neon",
+                            description = "Nocna metropolia, neonowy róż, cyjan i żółć",
+                            paletteColors = listOf(Color(0xFFFF007F), Color(0xFF00F0FF), Color(0xFFFFE600)),
+                            isSelected = prefs?.appTheme == AppTheme.CYBERPUNK_NEON
+                        ) {
+                            scope.launch { preferencesRepository.setAppTheme(AppTheme.CYBERPUNK_NEON) }
+                        }
+
+                        ThemeOptionItem(
+                            title = "Crimson Night",
+                            description = "Głęboka czerń z rubinową czerwienią i burgundem",
+                            paletteColors = listOf(Color(0xFFE11D48), Color(0xFFDC2626), Color(0xFF7F1D1D)),
+                            isSelected = prefs?.appTheme == AppTheme.CRIMSON_NIGHT
+                        ) {
+                            scope.launch { preferencesRepository.setAppTheme(AppTheme.CRIMSON_NIGHT) }
+                        }
+
+                        ThemeOptionItem(
+                            title = "Midnight Amber",
+                            description = "Węglowa czerń z ciepłym złotem i bursztynem",
+                            paletteColors = listOf(Color(0xFFF59E0B), Color(0xFFEA580C), Color(0xFF78350F)),
+                            isSelected = prefs?.appTheme == AppTheme.MIDNIGHT_AMBER
+                        ) {
+                            scope.launch { preferencesRepository.setAppTheme(AppTheme.MIDNIGHT_AMBER) }
+                        }
+
+                        ThemeOptionItem(
+                            title = "Synthwave Sunset",
+                            description = "Ciemny granat, zachód słońca, neonowy fiolet i koral",
+                            paletteColors = listOf(Color(0xFFF97316), Color(0xFFEC4899), Color(0xFF8B5CF6)),
+                            isSelected = prefs?.appTheme == AppTheme.SYNTHWAVE_SUNSET
+                        ) {
+                            scope.launch { preferencesRepository.setAppTheme(AppTheme.SYNTHWAVE_SUNSET) }
+                        }
+
+                        ThemeOptionItem(
                             title = "Pure AMOLED",
                             description = "100% głęboka czerń, wygaszone tło dla baterii OLED",
                             paletteColors = listOf(Color(0xFF000000), Color(0xFF333333), Color(0xFF666666)),

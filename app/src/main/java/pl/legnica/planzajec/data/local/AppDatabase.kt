@@ -24,7 +24,7 @@ import pl.legnica.planzajec.data.local.entity.TeacherEntity
         TeacherEntity::class,
         RoomEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

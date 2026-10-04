@@ -21,6 +21,10 @@ enum class AppTheme(val label: String) {
     AURORA_PURPLE("Aurora Purple"),
     EMERALD_MATRIX("Emerald Matrix"),
     DEEP_OCEAN("Deep Ocean"),
+    CYBERPUNK_NEON("Cyberpunk Neon"),
+    CRIMSON_NIGHT("Crimson Night"),
+    MIDNIGHT_AMBER("Midnight Amber"),
+    SYNTHWAVE_SUNSET("Synthwave Sunset"),
     PURE_AMOLED("Pure AMOLED")
 }
 

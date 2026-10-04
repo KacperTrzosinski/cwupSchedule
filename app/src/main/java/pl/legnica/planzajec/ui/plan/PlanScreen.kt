@@ -334,7 +334,8 @@ private fun UpcomingLessonsView(
     onRoomClick: (String) -> Unit
 ) {
     val today = LocalDate.now()
-    val groupedByDate = lessons.groupBy { it.date }.toSortedMap()
+    val upcomingLessons = lessons.filter { !it.date.isBefore(today) }
+    val groupedByDate = upcomingLessons.groupBy { it.date }.toSortedMap()
 
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
@@ -380,7 +381,8 @@ private fun DayByDayView(
     onRoomClick: (String) -> Unit
 ) {
     val today = LocalDate.now()
-    val allDates = lessons.map { it.date }.distinct().sorted()
+    val futureDates = lessons.map { it.date }.filter { !it.isBefore(today) }.distinct().sorted()
+    val allDates = if (futureDates.isNotEmpty()) futureDates else lessons.map { it.date }.distinct().sorted()
     val defaultDate = allDates.find { !it.isBefore(today) } ?: allDates.firstOrNull() ?: today
     var selectedDate by remember(allDates) { mutableStateOf(defaultDate) }
 

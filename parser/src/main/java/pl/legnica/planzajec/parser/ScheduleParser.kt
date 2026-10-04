@@ -112,22 +112,30 @@ class ScheduleParser {
         }
     }
 
+    private fun normalizeCode(str: String): String =
+        str.replace('\u00A0', ' ')
+            .replace("&nbsp;", " ")
+            .replace(Regex("""\s+"""), " ")
+            .trim()
+
     private fun parseLegend(doc: Element): Map<String, String> {
         val legendMap = mutableMapOf<String, String>()
         val allTables = doc.select("table")
         for (table in allTables) {
             val isLegendTable = table.hasClass("TabLegenda") ||
-                table.select("th").any { it.text().contains("skr", ignoreCase = true) }
+                table.parents().any { it.id().equals("prtleg", ignoreCase = true) || it.attr("name").equals("prnt", ignoreCase = true) } ||
+                table.select("th, td").any { it.text().contains("skr", ignoreCase = true) }
             if (isLegendTable) {
                 val rows = table.select("tr")
                 for (row in rows) {
                     val cells = row.select("td")
                     if (cells.size >= 2) {
-                        val shortCode = cells[0].text().trim()
-                        val fullName = cells[1].text().trim()
+                        val shortCode = normalizeCode(cells[0].text())
+                        val fullName = normalizeCode(cells[1].text())
                         if (shortCode.isNotBlank() && fullName.isNotBlank() &&
                             !shortCode.startsWith("Skr", ignoreCase = true) &&
-                            shortCode != "P" && shortCode != "N"
+                            shortCode != "P" && shortCode != "N" &&
+                            !shortCode.equals("Przedmiot", ignoreCase = true)
                         ) {
                             legendMap[shortCode] = fullName
                         }
@@ -268,9 +276,10 @@ class ScheduleParser {
         val rawType = typeMatch?.groupValues?.get(1)?.trim().orEmpty()
         val subjectShort = cleanSubject.replace(Regex("""\([^)]+\)"""), "").trim()
         val lessonType = LessonType.fromRaw(rawType)
-        val subjectFull = legend.entries.firstOrNull { it.key.equals(subjectShort, ignoreCase = true) }?.value
-            ?: legend[subjectShort]
-            ?: subjectShort
+        val normSubject = normalizeCode(subjectShort)
+        val subjectFull = legend.entries.firstOrNull {
+            normalizeCode(it.key).equals(normSubject, ignoreCase = true)
+        }?.value ?: legend[normSubject] ?: legend[subjectShort] ?: subjectShort
         val onlineMatch = Regex("""online[_\s]*(\d+)?""", RegexOption.IGNORE_CASE).find(roomTrimmed)
         val isOnline = onlineMatch != null
         val onlineId = onlineMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotBlank() }

@@ -88,6 +88,50 @@ fun LiquidGlassBackground(
                 rays = listOf(Color(0xFF8B5CF6).copy(alpha = 0.22f), Color(0xFF00D2FF).copy(alpha = 0.18f), Color(0xFFF43F5E).copy(alpha = 0.12f), Color.Transparent)
             )
         )
+        AppTheme.CYBERPUNK_NEON -> Pair(
+            Color(0xFF040209),
+            AuroraPalette(
+                bgStart = Color(0xFF090214),
+                bgEnd = Color(0xFF020106),
+                ribbon1 = listOf(Color(0xFFFF007F).copy(alpha = 0.45f), Color(0xFF00F0FF).copy(alpha = 0.50f), Color(0xFFFFE600).copy(alpha = 0.35f), Color.Transparent),
+                ribbon2 = listOf(Color(0xFF00E5FF).copy(alpha = 0.38f), Color(0xFFD946EF).copy(alpha = 0.45f), Color(0xFFFF0055).copy(alpha = 0.35f), Color.Transparent),
+                ribbon3 = listOf(Color(0xFF8B5CF6).copy(alpha = 0.35f), Color(0xFFFF007F).copy(alpha = 0.38f), Color(0xFF00F0FF).copy(alpha = 0.30f), Color.Transparent),
+                rays = listOf(Color(0xFFFF007F).copy(alpha = 0.22f), Color(0xFF00F0FF).copy(alpha = 0.20f), Color(0xFFFFE600).copy(alpha = 0.10f), Color.Transparent)
+            )
+        )
+        AppTheme.CRIMSON_NIGHT -> Pair(
+            Color(0xFF080103),
+            AuroraPalette(
+                bgStart = Color(0xFF140205),
+                bgEnd = Color(0xFF040001),
+                ribbon1 = listOf(Color(0xFFE11D48).copy(alpha = 0.45f), Color(0xFFBE123C).copy(alpha = 0.50f), Color(0xFF991B1B).copy(alpha = 0.40f), Color.Transparent),
+                ribbon2 = listOf(Color(0xFFFB7185).copy(alpha = 0.35f), Color(0xFFDC2626).copy(alpha = 0.42f), Color(0xFF7F1D1D).copy(alpha = 0.40f), Color.Transparent),
+                ribbon3 = listOf(Color(0xFFF43F5E).copy(alpha = 0.30f), Color(0xFF881337).copy(alpha = 0.38f), Color(0xFFE11D48).copy(alpha = 0.28f), Color.Transparent),
+                rays = listOf(Color(0xFFE11D48).copy(alpha = 0.24f), Color(0xFFDC2626).copy(alpha = 0.18f), Color(0xFF7F1D1D).copy(alpha = 0.12f), Color.Transparent)
+            )
+        )
+        AppTheme.MIDNIGHT_AMBER -> Pair(
+            Color(0xFF080602),
+            AuroraPalette(
+                bgStart = Color(0xFF120D04),
+                bgEnd = Color(0xFF030201),
+                ribbon1 = listOf(Color(0xFFF59E0B).copy(alpha = 0.45f), Color(0xFFD97706).copy(alpha = 0.50f), Color(0xFFB45309).copy(alpha = 0.40f), Color.Transparent),
+                ribbon2 = listOf(Color(0xFFFBBF24).copy(alpha = 0.38f), Color(0xFFEA580C).copy(alpha = 0.40f), Color(0xFF78350F).copy(alpha = 0.38f), Color.Transparent),
+                ribbon3 = listOf(Color(0xFFFDE68A).copy(alpha = 0.28f), Color(0xFFD97706).copy(alpha = 0.35f), Color(0xFF92400E).copy(alpha = 0.30f), Color.Transparent),
+                rays = listOf(Color(0xFFF59E0B).copy(alpha = 0.22f), Color(0xFFEA580C).copy(alpha = 0.18f), Color(0xFFB45309).copy(alpha = 0.12f), Color.Transparent)
+            )
+        )
+        AppTheme.SYNTHWAVE_SUNSET -> Pair(
+            Color(0xFF06030F),
+            AuroraPalette(
+                bgStart = Color(0xFF0E051F),
+                bgEnd = Color(0xFF03010A),
+                ribbon1 = listOf(Color(0xFFF97316).copy(alpha = 0.42f), Color(0xFFEC4899).copy(alpha = 0.48f), Color(0xFF8B5CF6).copy(alpha = 0.45f), Color.Transparent),
+                ribbon2 = listOf(Color(0xFFFB923C).copy(alpha = 0.35f), Color(0xFFD946EF).copy(alpha = 0.42f), Color(0xFF6366F1).copy(alpha = 0.38f), Color.Transparent),
+                ribbon3 = listOf(Color(0xFFFF007F).copy(alpha = 0.32f), Color(0xFFF59E0B).copy(alpha = 0.30f), Color(0xFF7C3AED).copy(alpha = 0.35f), Color.Transparent),
+                rays = listOf(Color(0xFFEC4899).copy(alpha = 0.22f), Color(0xFFF97316).copy(alpha = 0.18f), Color(0xFF8B5CF6).copy(alpha = 0.15f), Color.Transparent)
+            )
+        )
     }
 
     Box(

@@ -52,6 +52,8 @@ class PlanViewModel @Inject constructor(
         observeData()
     }
 
+    private var hasAutoRefreshed = false
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeData() {
         viewModelScope.launch {
@@ -59,6 +61,13 @@ class PlanViewModel @Inject constructor(
                 .flatMapLatest { prefs ->
                     val groupCode = prefs.selectedGroupCode ?: return@flatMapLatest flowOf(null)
                     val subgroup = prefs.selectedSubgroup
+
+                    if (!hasAutoRefreshed) {
+                        hasAutoRefreshed = true
+                        viewModelScope.launch {
+                            repository.refreshSchedule(groupCode)
+                        }
+                    }
 
                     combine(
                         repository.getLessons(groupCode, subgroup),

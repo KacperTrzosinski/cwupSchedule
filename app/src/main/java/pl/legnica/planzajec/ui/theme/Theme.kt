@@ -53,6 +53,26 @@ fun CwupScheduleTheme(
             primaryContainer = Color(0xFF1E40AF),
             secondary = Color(0xFF60A5FA)
         )
+        AppTheme.CYBERPUNK_NEON -> baseScheme.copy(
+            primary = Color(0xFFFF007F),
+            primaryContainer = Color(0xFF830051),
+            secondary = Color(0xFF00F0FF)
+        )
+        AppTheme.CRIMSON_NIGHT -> baseScheme.copy(
+            primary = Color(0xFFE11D48),
+            primaryContainer = Color(0xFF881337),
+            secondary = Color(0xFFFB7185)
+        )
+        AppTheme.MIDNIGHT_AMBER -> baseScheme.copy(
+            primary = Color(0xFFF59E0B),
+            primaryContainer = Color(0xFF78350F),
+            secondary = Color(0xFFFBBF24)
+        )
+        AppTheme.SYNTHWAVE_SUNSET -> baseScheme.copy(
+            primary = Color(0xFFF97316),
+            primaryContainer = Color(0xFF7C3AED),
+            secondary = Color(0xFFEC4899)
+        )
         AppTheme.PURE_AMOLED -> AmoledColorScheme
         AppTheme.LIQUID_OBSIDIAN -> baseScheme
     }
